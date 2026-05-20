@@ -122,6 +122,82 @@
 
     .verdict-reason { color: var(--text-muted); font-size: 0.95rem; }
 
+    /* GAUGE CARD */
+    .gauge-card {
+      max-width: 900px;
+      margin: 0 auto 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 20px 16px;
+      text-align: center;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .gauge-card.go    { background: var(--green-bg); border: 2px solid var(--green); }
+    .gauge-card.maybe { background: var(--amber-bg); border: 2px solid var(--amber); }
+    .gauge-card.nogo  { background: var(--red-bg);   border: 2px solid var(--red); }
+    .gauge-card.loading { background: var(--surface); border: 2px solid var(--border); }
+
+    .gauge-sport-label {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .gauge-wrap {
+      position: relative;
+      width: 200px;
+      margin: 0 auto 4px;
+    }
+    .gauge-svg { width: 100%; height: auto; overflow: visible; }
+    .gauge-track {
+      fill: none;
+      stroke: #1e293b;
+      stroke-width: 14;
+      stroke-linecap: round;
+    }
+    .gauge-arc {
+      fill: none;
+      stroke: var(--green);
+      stroke-width: 14;
+      stroke-linecap: round;
+      transition: stroke-dasharray 0.7s ease, stroke 0.4s;
+    }
+    .gauge-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      padding: 0 4px;
+    }
+    .gauge-center-text {
+      position: absolute;
+      top: 56%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+    .gauge-pct {
+      font-size: 2.6rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--text);
+    }
+    .gauge-status {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+      font-weight: 600;
+    }
+    .gauge-detail {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      min-height: 18px;
+      margin-top: 6px;
+    }
+
     /* UNCERTAINTY BANNER */
     .uncertainty-banner {
       max-width: 600px;
@@ -514,11 +590,11 @@
 <header>
   <div style="font-size:2.5rem; margin-bottom:6px">🏔️</div>
   <h1>Soll ich rausgehen?</h1>
-  <p class="subtitle">Median aus 3 Wetterquellen · Österreich</p>
+  <p class="subtitle">Median aus 4 Wetterquellen · Österreich</p>
   <div class="controls">
     <select id="locationSelect" onchange="loadWeather()">
       <option value="Wien">📍 Wien</option>
-      <option value="Salzburg">📍 Salzburg</option>
+      <option value="Salzburg" selected>📍 Salzburg</option>
       <option value="Obertrum">📍 Obertrum am See</option>
       <option value="Graz">📍 Graz</option>
     </select>
@@ -535,11 +611,32 @@
   <button class="refresh-btn" onclick="loadWeather()">🔄 Aktualisieren</button>
 </header>
 
-<!-- VERDICT -->
-<div class="verdict-card loading" id="verdictCard">
-  <div class="verdict-emoji" id="verdictEmoji">⏳</div>
-  <div class="verdict-title" id="verdictTitle">Lädt…</div>
-  <div class="verdict-reason" id="verdictReason">Wetterdaten werden abgerufen</div>
+<!-- GAUGE CARD -->
+<div class="gauge-card loading" id="gaugeCard">
+  <div class="gauge-sport-label" id="gaugeSportLabel">🧗 Klettern</div>
+  <div class="gauge-wrap">
+    <svg viewBox="0 0 200 115" class="gauge-svg">
+      <!-- background track -->
+      <path class="gauge-track" d="M 20 100 A 80 80 0 0 1 180 100"/>
+      <!-- foreground arc (animated) -->
+      <path id="gaugeArc" class="gauge-arc" d="M 20 100 A 80 80 0 0 1 180 100" stroke-dasharray="0 252"/>
+    </svg>
+    <div class="gauge-labels">
+      <span>0%</span>
+      <span>100%</span>
+    </div>
+    <div class="gauge-center-text">
+      <div class="gauge-pct" id="gaugePct">⏳</div>
+      <div class="gauge-status" id="gaugeStatus">Lädt…</div>
+    </div>
+  </div>
+  <div class="gauge-detail" id="gaugeDetail"></div>
+</div>
+
+<!-- HOURLY VIEW -->
+<div class="sport-scores-card" id="hourlyCard" style="display:none">
+  <div class="card-label" id="hourlyCardLabel">🕐 Stündliche Vorhersage</div>
+  <div id="hourlyContent"></div>
 </div>
 
 <!-- UNCERTAINTY BANNER -->
@@ -631,25 +728,33 @@
     </div>
   </div>
 
+  <div class="source-card" id="cardBrightSky">
+    <div class="source-header">
+      <span class="source-name">🌤️ Bright Sky</span>
+      <span style="font-size:0.65rem; color:var(--text-muted); margin-left:2px">(DWD)</span>
+      <span class="source-badge badge-loading" id="badgeBrightSky"><span class="spinner"></span></span>
+    </div>
+    <div class="source-metrics" id="metricsBrightSky">
+      <div><div class="src-metric-val">–</div><div class="src-metric-lbl">Temperatur</div></div>
+      <div><div class="src-metric-val">–</div><div class="src-metric-lbl">Niederschlag</div></div>
+      <div><div class="src-metric-val">–</div><div class="src-metric-lbl">Wind</div></div>
+      <div><div class="src-metric-val">–</div><div class="src-metric-lbl">Feuchte</div></div>
+    </div>
+  </div>
 
 </div>
 <div class="sport-scores-card">
-  <div class="card-label">🎯 Sport-Eignungs-Check</div>
+  <div class="card-label">🔍 Andere Sportarten im Vergleich</div>
   <div class="sport-scores-grid" id="sportScoresGrid">
     <div style="color:var(--text-muted); font-size:0.9rem;">Warte auf Daten…</div>
   </div>
 </div>
 
-<!-- HOURLY VIEW -->
-<div class="sport-scores-card" id="hourlyCard" style="display:none">
-  <div class="card-label" id="hourlyCardLabel">🕐 Stündliche Vorhersage</div>
-  <div id="hourlyContent"></div>
-</div>
-
 <footer>
   Quellen: <a href="https://open-meteo.com" target="_blank">Open-Meteo</a> ·
   <a href="https://wttr.in" target="_blank">wttr.in</a> ·
-  <a href="https://dataset.api.hub.geosphere.at" target="_blank">GeoSphere Austria (ZAMG/ORF)</a><br>
+  <a href="https://dataset.api.hub.geosphere.at" target="_blank">GeoSphere Austria (ZAMG/ORF)</a> ·
+  <a href="https://brightsky.dev" target="_blank">Bright Sky (DWD)</a><br>
   Stand: <span id="lastUpdate">–</span>
 </footer>
 
@@ -711,6 +816,7 @@
   let lastRainHistory = null;
   let lastRainHistoryLive = null; // always the real measured history for today
   let forecastData = null;
+  let forecastDataBS = null;
   let selectedDayIndex = 0;
 
   // ─── SPORT SELECTOR ──────────────────────────────────────────────────────────
@@ -849,6 +955,89 @@
     return d.hourly;
   }
 
+  async function fetchBrightSkyCurrent(loc) {
+    const url = `https://api.brightsky.dev/current_weather?lat=${loc.lat}&lon=${loc.lon}`;
+    const r = await fetch(url);
+    const d = await r.json();
+    const w = d.weather;
+    return {
+      temp:     w.temperature ?? null,
+      rain:     w.precipitation_10 !== null ? (w.precipitation_10 * 6) : null, // mm/10min → mm/h
+      wind:     w.wind_speed ?? null, // already km/h
+      humidity: w.relative_humidity ?? null,
+      desc:     w.condition ?? 'Bright Sky',
+    };
+  }
+
+  function bsConditionToCode(condition) {
+    switch (condition) {
+      case 'dry':         return 0;
+      case 'fog':         return 45;
+      case 'rain':        return 61;
+      case 'sleet':       return 68;
+      case 'snow':        return 71;
+      case 'hail':        return 96;
+      case 'thunderstorm':return 95;
+      default:            return 3;
+    }
+  }
+
+  async function fetchBrightSkyForecast(loc) {
+    const today    = new Date();
+    const lastDate = new Date(today.getTime() + 7 * 24 * 3600 * 1000);
+    const fmt      = d => d.toISOString().slice(0, 10);
+    const url = `https://api.brightsky.dev/weather?lat=${loc.lat}&lon=${loc.lon}` +
+      `&date=${fmt(today)}&last_date=${fmt(lastDate)}&tz=Europe%2FVienna`;
+    const r = await fetch(url);
+    const d = await r.json();
+    const times = [], temps = [], rains = [], winds = [], humids = [], codes = [];
+    for (const w of d.weather) {
+      times.push(w.timestamp.slice(0, 16));   // "2025-05-20T06:00"
+      temps.push(w.temperature ?? null);
+      rains.push(w.precipitation ?? null);    // mm/h
+      winds.push(w.wind_speed ?? null);       // km/h
+      humids.push(w.relative_humidity ?? null);
+      codes.push(bsConditionToCode(w.condition));
+    }
+    return { time: times, temperature_2m: temps, precipitation: rains, wind_speed_10m: winds, relative_humidity_2m: humids, weather_code: codes };
+  }
+
+  function getDayForecastStatsBS(dateStr) {
+    if (!forecastDataBS) return null;
+    const hours = forecastDataBS.time
+      .map((t, idx) => ({ t, idx, hour: parseInt(t.slice(11, 13)) }))
+      .filter(({ t, hour }) => t.slice(0, 10) === dateStr && hour >= 8 && hour <= 20)
+      .map(({ idx }) => ({
+        temp:     forecastDataBS.temperature_2m[idx],
+        rain:     forecastDataBS.precipitation[idx],
+        wind:     forecastDataBS.wind_speed_10m[idx],
+        humidity: forecastDataBS.relative_humidity_2m[idx],
+      }));
+    if (!hours.length) return null;
+    return {
+      temp:     median(hours.map(h => h.temp)),
+      rain:     Math.max(...hours.map(h => h.rain ?? 0)),
+      wind:     median(hours.map(h => h.wind)),
+      humidity: median(hours.map(h => h.humidity)),
+      sun:      null,
+    };
+  }
+
+  function getDayForecastStatsCombined(dateStr) {
+    const om = getDayForecastStats(dateStr);
+    const bs = getDayForecastStatsBS(dateStr);
+    if (!om && !bs) return null;
+    if (!om) return bs;
+    if (!bs) return om;
+    return {
+      temp:     median([om.temp, bs.temp]),
+      rain:     Math.max(om.rain ?? 0, bs.rain ?? 0), // worst-case rain from either source
+      wind:     median([om.wind, bs.wind]),
+      humidity: median([om.humidity, bs.humidity]),
+      sun:      null,
+    };
+  }
+
   // ─── WMO → SHORT EMOJI ───────────────────────────────────────────────────────
 
   function wmoEmoji(code) {
@@ -867,13 +1056,18 @@
 
   // ─── SCORE HOUR FOR SPORT ────────────────────────────────────────────────────
 
-  function scoreHour(sport, temp, rain, wind, humidity) {
+  function scoreHour(sport, temp, rain, wind, humidity, wmoCode) {
+    // Thunderstorm = nogo for all sports
+    if (wmoCode !== undefined && wmoCode !== null && wmoCode >= 95) return 'nogo';
+    
     const t = SPORTS[sport].thresholds;
     let score = 100;
     if (temp     !== null && temp     < t.minTemp)     score -= 60;
     if (rain     !== null && rain     > t.maxRain)     score -= 40 + Math.min(40, (rain - t.maxRain) * 10);
     if (humidity !== null && humidity > t.maxHumidity) score -= 20;
     if (wind     !== null && wind     > t.maxWind)     score -= 30;
+    // Radfahren & Klettern: any rain = nogo
+    if ((sport === 'Radfahren' || sport === 'Klettern') && rain !== null && rain > 0.05) return 'nogo';
     score = Math.max(0, Math.min(100, Math.round(score)));
     return score >= 70 ? 'go' : score >= 40 ? 'maybe' : 'nogo';
   }
@@ -920,6 +1114,131 @@
       .filter(({ time }) => time >= lookStart && time < dayStart);
   }
 
+  // Returns { pct: 0-100, hasThunder: bool, hasRain: bool } for the selected day
+  // pct = % of hours 6-22 that are suitable for the sport
+  function computeDayPct(dayIdx, sportName) {
+    if (!forecastData) return { pct: null, hasThunder: false, hasRain: false };
+    const days = getDaysList();
+    const dateStr = days[dayIdx];
+    if (!dateStr) return { pct: null, hasThunder: false, hasRain: false };
+
+    const times = forecastData.time;
+    const temps = forecastData.temperature_2m;
+    const rains = forecastData.precipitation;
+    const winds = forecastData.wind_speed_10m;
+    const codes = forecastData.weather_code;
+
+    let total = 0, goodScore = 0;
+    let hasThunder = false, hasRain = false;
+
+    for (let i = 0; i < times.length; i++) {
+      if (!times[i].startsWith(dateStr)) continue;
+      const hour = parseInt(times[i].slice(11, 13));
+      if (hour < 6 || hour > 22) continue;
+      total++;
+
+      const temp = temps[i], rain = rains[i], wind = winds[i], code = codes[i];
+
+      if (code >= 95) { hasThunder = true; continue; } // thunderstorm = nogo
+      if (rain > 0.05) hasRain = true;
+      if ((sportName === 'Radfahren' || sportName === 'Klettern') && rain > 0.05) continue; // any rain = nogo for these sports
+      
+      const s = scoreHour(sportName, temp, rain, wind, null, code);
+      if (s === 'go') goodScore += 1;
+      else if (s === 'maybe') goodScore += 0.5;
+    }
+
+    const pct = total > 0 ? Math.round((goodScore / total) * 100) : null;
+    // Any rain = nogo for the whole day for Klettern and Radfahren
+    if ((sportName === 'Radfahren' || sportName === 'Klettern') && hasRain) {
+      return { pct: 0, hasThunder, hasRain };
+    }
+    return { pct, hasThunder, hasRain };
+  }
+
+  function renderGauge(dayIdx) {
+    const card     = document.getElementById('gaugeCard');
+    const arcEl    = document.getElementById('gaugeArc');
+    const pctEl    = document.getElementById('gaugePct');
+    const statusEl = document.getElementById('gaugeStatus');
+    const sportLbl = document.getElementById('gaugeSportLabel');
+    const detailEl = document.getElementById('gaugeDetail');
+
+    const sport = SPORTS[selectedSport];
+    sportLbl.textContent = `${sport.emoji} ${selectedSport} – Tageseignung`;
+
+    if (!forecastData) {
+      pctEl.textContent = '–';
+      statusEl.textContent = 'Keine Daten';
+      card.className = 'gauge-card loading';
+      return;
+    }
+
+    const ARC_LEN = 251.33; // π * 80
+    const { pct, hasThunder, hasRain } = computeDayPct(dayIdx, selectedSport);
+
+    let status, color, statusText, displayPct;
+
+    if (hasThunder) {
+      status = 'nogo'; color = 'var(--red)';
+      statusText = '⛈️ Gewitter – kein Sport!';
+      displayPct = 0;
+    } else if (pct === null) {
+      pctEl.textContent = '–';
+      statusEl.textContent = 'Keine Daten';
+      card.className = 'gauge-card loading';
+      detailEl.innerHTML = '';
+      return;
+    } else {
+      displayPct = pct;
+      if ((selectedSport === 'Radfahren' || selectedSport === 'Klettern') && hasRain) {
+        status = 'nogo'; color = 'var(--red)';
+        statusText = selectedSport === 'Klettern'
+          ? '🧗 Regen vorhergesagt – Fels wird nass!'
+          : '🚴 Regen vorhergesagt – kein Radfahren!';
+      } else if (pct >= 70) {
+        status = 'go'; color = 'var(--green)'; statusText = 'Toller Tag! 🟢';
+      } else if (pct >= 40) {
+        status = 'maybe'; color = 'var(--amber)'; statusText = 'Geht so 🟡';
+      } else {
+        status = 'nogo'; color = 'var(--red)'; statusText = 'Eher drinbleiben 🔴';
+      }
+    }
+
+    card.className = `gauge-card ${status}`;
+    arcEl.style.stroke = color;
+    arcEl.setAttribute('stroke-dasharray', `${displayPct / 100 * ARC_LEN} ${ARC_LEN}`);
+    pctEl.textContent = displayPct + '%';
+    pctEl.style.color = color;
+    statusEl.textContent = statusText;
+
+    // Detail issues
+    let issues = [];
+    if (hasThunder) {
+      issues = ['⛈️ Gewitter vorhergesagt – alle Outdoor-Aktivitäten gefährlich'];
+    } else {
+      const days = getDaysList();
+      const dateStr = days[dayIdx];
+      const stats = dayIdx === 0 && lastData ? lastData : getDayForecastStats(dateStr);
+      if (stats) {
+        const result = calcSportScore(selectedSport, stats);
+        issues = result.issues;
+      }
+      if ((selectedSport === 'Radfahren' || selectedSport === 'Klettern') && hasRain) {
+        issues = [
+          selectedSport === 'Klettern'
+            ? '🌧️ Regen am Tag vorhergesagt – Fels nass, kein Klettern!'
+            : '🌧️ Regen am Tag vorhergesagt – Straße nass, Rutschgefahr',
+          ...issues
+        ];
+      }
+    }
+
+    detailEl.innerHTML = issues.length
+      ? issues.map(i => `⚠️ ${i}`).join('&nbsp; · &nbsp;')
+      : (displayPct >= 70 ? '✅ Ideale Bedingungen für den ganzen Tag!' : '');
+  }
+
   // ─── POPULATE DAY DROPDOWN ────────────────────────────────────────────────────
 
   function renderDaySelector() {
@@ -949,19 +1268,19 @@
 
     if (dayIdx === 0 && lastData) {
       // TODAY – use live multi-source data already in the DOM
-      // Just re-render verdict + sport scores with live data + real history
+      // Re-render gauge + sport scores with live data + real history
       lastRainHistory = lastRainHistoryLive;
-      renderVerdict(lastData);
+      renderGauge(dayIdx);
       renderSportScores(lastData);
       // Restore live uncertainty banner
       const rainSpread  = spread([lastData.rain]);
       document.getElementById('uncertaintyBanner').classList.toggle('show', false);
     } else if (forecastData) {
-      // FUTURE DAY – derive from Open-Meteo hourly forecast
-      const stats = getDayForecastStats(dateStr);
+      // FUTURE DAY – derive from Open-Meteo + Bright Sky forecast
+      const stats = getDayForecastStatsCombined(dateStr);
       if (!stats) return;
 
-      // Update median display with forecast stats
+      // Update median display with combined forecast stats
       document.getElementById('medTemp').textContent     = stats.temp     !== null ? stats.temp.toFixed(1)    + '°C'  : '–';
       document.getElementById('medRain').textContent     = stats.rain     !== null ? stats.rain.toFixed(1)    + ' mm' : '–';
       document.getElementById('medWind').textContent     = stats.wind     !== null ? Math.round(stats.wind)   + ' km/h': '–';
@@ -972,18 +1291,33 @@
       ['varTemp','varRain','varWind','varHumidity'].forEach(id =>
         document.getElementById(id).innerHTML = '');
 
-      // Source cards: Open-Meteo shows forecast, others unavailable
-      renderSourceForecast('metricsOpenMeteo', 'badgeOpenMeteo', stats);
+      // Source cards: Open-Meteo + Bright Sky show forecast, others unavailable
+      const omStats = getDayForecastStats(dateStr);
+      const bsStats = getDayForecastStatsBS(dateStr);
+      renderSourceForecast('metricsOpenMeteo', 'badgeOpenMeteo', omStats || stats);
+      renderSourceForecast('metricsBrightSky', 'badgeBrightSky', bsStats || stats);
       renderSourceUnavailable('metricsWttr',      'badgeWttr',      'Nur Live-Daten');
       renderSourceUnavailable('metricsGeoSphere', 'badgeGeoSphere', 'Nur Live-Daten');
 
-      // Hide uncertainty banner for forecast
-      document.getElementById('uncertaintyBanner').classList.remove('show');
+      // Variance bars from the two forecast sources
+      if (omStats && bsStats) {
+        renderVarianceBar('varTemp',     'Temperatur',   [omStats.temp,     bsStats.temp    ], '°C',   50,  3);
+        renderVarianceBar('varRain',     'Niederschlag', [omStats.rain,     bsStats.rain    ], 'mm',   20,  1);
+        renderVarianceBar('varWind',     'Wind',         [omStats.wind,     bsStats.wind    ], 'km/h', 100, 10);
+        renderVarianceBar('varHumidity', 'Feuchte',      [omStats.humidity, bsStats.humidity], '%',    100, 10);
+        // Show uncertainty banner if sources disagree significantly
+        const isUncertain = spread([omStats.temp, bsStats.temp]) > 4 || spread([omStats.rain, bsStats.rain]) > 1.5;
+        document.getElementById('uncertaintyBanner').classList.toggle('show', isUncertain);
+      } else {
+        ['varTemp','varRain','varWind','varHumidity'].forEach(id =>
+          document.getElementById(id).innerHTML = '');
+        document.getElementById('uncertaintyBanner').classList.remove('show');
+      }
 
       // Rain lookback from forecast for Klettern (24h) / Wandern (12h)
       lastRainHistory = getForecastRainLookback(dateStr, 24);
 
-      renderVerdict(stats);
+      renderGauge(dayIdx);
       renderSportScores(stats);
     }
 
@@ -1029,8 +1363,7 @@
     const winds  = forecastData.wind_speed_10m;
     const codes  = forecastData.weather_code;
     const sport  = SPORTS[selectedSport];
-    const t      = sport.thresholds;
-    const nowH   = new Date().getHours();
+      const nowH   = new Date().getHours();
 
     let cells = '';
     for (let i = 0; i < times.length; i++) {
@@ -1039,9 +1372,8 @@
       if (hour < 6 || hour > 22) continue;
 
       const temp = temps[i], rain = rains[i], wind = winds[i], code = codes[i];
-      let cls = 'hc-go';
-      if (rain > t.maxRain || wind > t.maxWind || temp < t.minTemp) cls = 'hc-nogo';
-      else if (rain > t.maxRain * 0.5 || wind > t.maxWind * 0.75) cls = 'hc-maybe';
+      const hrStatus = scoreHour(selectedSport, temp, rain, wind, null, code);
+      let cls = hrStatus === 'go' ? 'hc-go' : hrStatus === 'maybe' ? 'hc-maybe' : 'hc-nogo';
 
       const isNow = (dayIdx === 0 && hour === nowH);
       const rainStr = rain > 0 ? `${rain.toFixed(1)}mm` : '';
@@ -1286,6 +1618,7 @@
     const emoji  = document.getElementById('verdictEmoji');
     const title  = document.getElementById('verdictTitle');
     const reason = document.getElementById('verdictReason');
+    if (!card || !emoji || !title || !reason) return;
 
     card.className = `verdict-card ${status}`;
     emoji.textContent  = status === 'go' ? '🟢' : status === 'maybe' ? '🟡' : '🔴';
@@ -1303,7 +1636,7 @@
 
   function renderSportScores(medData) {
     const grid = document.getElementById('sportScoresGrid');
-    grid.innerHTML = Object.entries(SPORTS).map(([name, cfg]) => {
+    grid.innerHTML = Object.entries(SPORTS).filter(([name]) => name !== selectedSport).map(([name, cfg]) => {
       const { score, status, label, issues } = calcSportScore(name, medData);
       const isSelected = name === selectedSport ? 'selected' : '';
       const reasonText = issues.length ? issues.join(' · ') : 'Perfekte Bedingungen!';
@@ -1336,10 +1669,11 @@
     const loc = LOCATIONS[locName];
 
     // Reset UI to loading
-    document.getElementById('verdictCard').className = 'verdict-card loading';
-    document.getElementById('verdictEmoji').textContent = '⏳';
-    document.getElementById('verdictTitle').textContent = 'Lädt…';
-    document.getElementById('verdictReason').textContent = 'Wetterdaten werden abgerufen';
+    document.getElementById('gaugeCard').className = 'gauge-card loading';
+    document.getElementById('gaugePct').textContent = '⏳';
+    document.getElementById('gaugeStatus').textContent = 'Lädt…';
+    document.getElementById('gaugeDetail').textContent = 'Wetterdaten werden abgerufen';
+    document.getElementById('gaugeArc').setAttribute('stroke-dasharray', '0 252');
     document.getElementById('uncertaintyBanner').classList.remove('show');
     document.getElementById('medTemp').textContent = '–';
     document.getElementById('medRain').textContent = '–';
@@ -1347,40 +1681,45 @@
     document.getElementById('medHumidity').textContent = '–';
     document.getElementById('medSun').textContent = '–';
 
-    ['metricsOpenMeteo', 'metricsWttr', 'metricsGeoSphere'].forEach(id => {
+    ['metricsOpenMeteo', 'metricsWttr', 'metricsGeoSphere', 'metricsBrightSky'].forEach(id => {
       document.getElementById(id).innerHTML =
         `<div style="grid-column:1/-1"><span class="spinner"></span></div>`;
     });
-    ['badgeOpenMeteo', 'badgeWttr', 'badgeGeoSphere'].forEach(id => {
+    ['badgeOpenMeteo', 'badgeWttr', 'badgeGeoSphere', 'badgeBrightSky'].forEach(id => {
       document.getElementById(id).className = 'source-badge badge-loading';
       document.getElementById(id).innerHTML = '<span class="spinner"></span>';
     });
 
-    // Fetch all three weather sources + rain history + 7-day forecast in parallel
-    const [omResult, wttrResult, gsResult, histResult, fcResult] = await Promise.allSettled([
+    // Fetch all sources in parallel
+    const [omResult, wttrResult, gsResult, bsResult, histResult, fcResult, fcBsResult] = await Promise.allSettled([
       fetchOpenMeteo(loc),
       fetchWttr(loc),
       fetchGeoSphere(loc),
+      fetchBrightSkyCurrent(loc),
       fetchRainHistory(loc),
       fetchForecast(loc),
+      fetchBrightSkyForecast(loc),
     ]);
 
     const om  = omResult.status   === 'fulfilled' ? omResult.value   : null;
     const wt  = wttrResult.status === 'fulfilled' ? wttrResult.value : null;
     const gs  = gsResult.status   === 'fulfilled' ? gsResult.value   : null;
-    lastRainHistory     = histResult.status === 'fulfilled' ? histResult.value : null;
-    lastRainHistoryLive = lastRainHistory; // keep a copy of real measured data
-    forecastData        = fcResult.status  === 'fulfilled' ? fcResult.value   : null;
+    const bs  = bsResult.status   === 'fulfilled' ? bsResult.value   : null;
+    lastRainHistory     = histResult.status  === 'fulfilled' ? histResult.value  : null;
+    lastRainHistoryLive = lastRainHistory;
+    forecastData        = fcResult.status    === 'fulfilled' ? fcResult.value    : null;
+    forecastDataBS      = fcBsResult.status  === 'fulfilled' ? fcBsResult.value  : null;
 
     renderSource('metricsOpenMeteo', 'badgeOpenMeteo', om,  omResult.status   !== 'fulfilled');
     renderSource('metricsWttr',      'badgeWttr',      wt,  wttrResult.status !== 'fulfilled');
     renderSource('metricsGeoSphere', 'badgeGeoSphere', gs,  gsResult.status   !== 'fulfilled');
+    renderSource('metricsBrightSky', 'badgeBrightSky', bs,  bsResult.status   !== 'fulfilled');
 
-    // Calculate medians (4 sources)
-    const temps     = [om?.temp,     wt?.temp,     gs?.temp    ];
-    const rains     = [om?.rain,     wt?.rain,     gs?.rain    ];
-    const winds     = [om?.wind,     wt?.wind,     gs?.wind    ];
-    const humids    = [om?.humidity, wt?.humidity, gs?.humidity];
+    // Calculate medians (4 live sources)
+    const temps     = [om?.temp,     wt?.temp,     gs?.temp,     bs?.temp    ];
+    const rains     = [om?.rain,     wt?.rain,     gs?.rain,     bs?.rain    ];
+    const winds     = [om?.wind,     wt?.wind,     gs?.wind,     bs?.wind    ];
+    const humids    = [om?.humidity, wt?.humidity, gs?.humidity, bs?.humidity];
     const sunValues = [gs?.sun];
 
     const medData = {
@@ -1413,7 +1752,7 @@
     // Build day dropdown + render today
     selectedDayIndex = 0;
     renderDaySelector();
-    renderVerdict(medData);
+    renderGauge(0);
     renderSportScores(medData);
     renderHourlyView(0);
 
