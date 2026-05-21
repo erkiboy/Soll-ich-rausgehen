@@ -433,7 +433,7 @@
     /* HOURLY VIEW */
     .hourly-row {
       display: flex;
-      gap: 4px;
+      gap: 6px;
       overflow-x: auto;
       padding-bottom: 6px;
     }
@@ -441,11 +441,11 @@
     .hourly-row::-webkit-scrollbar-track { background: var(--surface2); border-radius: 2px; }
     .hourly-row::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
     .hourly-cell {
-      flex: 0 0 54px;
-      border-radius: 8px;
-      padding: 6px 4px;
+      flex: 0 0 86px;
+      border-radius: 10px;
+      padding: 8px 6px;
       text-align: center;
-      font-size: 0.65rem;
+      font-size: 0.68rem;
       border: 1px solid var(--border);
       background: var(--surface2);
     }
@@ -453,10 +453,29 @@
     .hourly-cell.hc-maybe { background: #2d1f07; border-color: var(--amber); }
     .hourly-cell.hc-nogo  { background: #2a0d0d; border-color: var(--red); }
     .hourly-cell.hc-now   { outline: 2px solid white; }
-    .hourly-cell .hc-time { color: var(--text-muted); margin-bottom: 3px; font-weight: 600; }
-    .hourly-cell .hc-icon { font-size: 1.1rem; display: block; margin: 2px 0; }
-    .hourly-cell .hc-temp { font-weight: 700; font-size: 0.78rem; }
-    .hourly-cell .hc-rain { font-size: 0.65rem; color: #60a5fa; margin-top: 1px; }
+    .hourly-cell .hc-time { color: var(--text-muted); margin-bottom: 3px; font-weight: 700; font-size: 0.72rem; }
+    .hourly-cell .hc-icon { font-size: 1.3rem; display: block; margin: 3px 0; }
+    .hourly-cell .hc-temp { font-weight: 700; font-size: 0.82rem; }
+    .hourly-cell .hc-temp-range { font-size: 0.62rem; color: var(--text-muted); margin-top: 1px; }
+    .hourly-cell .hc-rain { font-size: 0.65rem; color: #60a5fa; margin-top: 3px; }
+    .hourly-cell .hc-wind { font-size: 0.62rem; color: var(--text-muted); margin-top: 1px; }
+
+    /* DAY SEPARATOR in hourly strip */
+    .day-separator {
+      flex: 0 0 48px;
+      border-radius: 8px;
+      padding: 6px 3px;
+      text-align: center;
+      background: #0f172a;
+      border: 2px solid var(--blue);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 2px;
+    }
+    .day-sep-name { font-size: 0.7rem; font-weight: 800; color: var(--blue); }
+    .day-sep-date { font-size: 0.57rem; color: var(--text-muted); }
 
 
     .planner-card {
@@ -583,6 +602,40 @@
       transition: background 0.2s;
     }
     .refresh-btn:hover { background: var(--surface); border-color: var(--blue); color: var(--blue); }
+
+    /* BLOCK MODAL */
+    .modal-hour-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #334155;
+      font-size: 0.85rem;
+    }
+    .modal-hour-row:last-child { border-bottom: none; }
+    .modal-hour-badge {
+      width: 52px;
+      flex-shrink: 0;
+      font-weight: 700;
+      font-size: 0.78rem;
+    }
+    .modal-hour-badge.go    { color: #22c55e; }
+    .modal-hour-badge.maybe { color: #f59e0b; }
+    .modal-hour-badge.nogo  { color: #ef4444; }
+    .modal-var-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: #334155;
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    .modal-var-fill {
+      position: absolute;
+      top: 0; bottom: 0; left: 0;
+      border-radius: 3px;
+      background: #3b82f6;
+    }
   </style>
 </head>
 <body>
@@ -610,6 +663,14 @@
   </div>
   <button class="refresh-btn" onclick="loadWeather()">🔄 Aktualisieren</button>
 </header>
+
+<!-- DETAIL POPUP MODAL -->
+<div id="blockModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; overflow-y:auto; padding:20px; box-sizing:border-box;" onclick="closeBlockModal(event)">
+  <div id="blockModalContent" style="max-width:480px; margin:40px auto; background:#1e293b; border:1px solid #334155; border-radius:16px; padding:24px; position:relative;">
+    <button onclick="document.getElementById('blockModal').style.display='none'" style="position:absolute;top:12px;right:12px;background:#334155;border:none;color:#94a3b8;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:1rem;line-height:28px;text-align:center;">✕</button>
+    <div id="blockModalBody"></div>
+  </div>
+</div>
 
 <!-- GAUGE CARD -->
 <div class="gauge-card loading" id="gaugeCard">
@@ -791,7 +852,7 @@
     },
     'Wandern': {
       emoji: '🥾',
-      thresholds: { maxRain: 0.5, maxHumidity: 95, minTemp: -5, maxWind: 65 },
+      thresholds: { maxRain: 0.3, maxHumidity: 95, minTemp: -5, maxWind: 65 },
       reasons: {
         rain:     'Regen – Wege rutschig/schlammig',
         humidity: 'Extrem feucht',
@@ -801,7 +862,7 @@
     },
     'Laufen': {
       emoji: '🏃',
-      thresholds: { maxRain: 3.0, maxHumidity: 99, minTemp: -5, maxWind: 70 },
+      thresholds: { maxRain: 6.0, maxHumidity: 99, minTemp: -5, maxWind: 70 },
       reasons: {
         rain:     'Starker Regen',
         humidity: '',
@@ -817,6 +878,7 @@
   let lastRainHistoryLive = null; // always the real measured history for today
   let forecastData = null;
   let forecastDataBS = null;
+  let hourlyScrollListener = null;
   let selectedDayIndex = 0;
 
   // ─── SPORT SELECTOR ──────────────────────────────────────────────────────────
@@ -1059,15 +1121,44 @@
   function scoreHour(sport, temp, rain, wind, humidity, wmoCode) {
     // Thunderstorm = nogo for all sports
     if (wmoCode !== undefined && wmoCode !== null && wmoCode >= 95) return 'nogo';
-    
+
     const t = SPORTS[sport].thresholds;
     let score = 100;
-    if (temp     !== null && temp     < t.minTemp)     score -= 60;
-    if (rain     !== null && rain     > t.maxRain)     score -= 40 + Math.min(40, (rain - t.maxRain) * 10);
+
+    // Temperature penalty
+    if (temp !== null && temp < t.minTemp) score -= 60;
+
+    // Wind penalty
+    if (wind !== null && wind > t.maxWind) score -= 30 + Math.min(30, (wind - t.maxWind) * 0.5);
+
+    // Humidity penalty
     if (humidity !== null && humidity > t.maxHumidity) score -= 20;
-    if (wind     !== null && wind     > t.maxWind)     score -= 30;
-    // Radfahren & Klettern: any rain = nogo
-    if ((sport === 'Radfahren' || sport === 'Klettern') && rain !== null && rain > 0.05) return 'nogo';
+
+    // Sport-specific rain logic
+    if (rain !== null) {
+      if (sport === 'Klettern') {
+        // Any rain = nogo (rock gets wet)
+        if (rain > 0.05) return 'nogo';
+      } else if (sport === 'Radfahren') {
+        // Any rain = nogo for that hour (slippery road)
+        if (rain > 0.05) return 'nogo';
+      } else if (sport === 'Wandern') {
+        // 0–0.3: slight penalty; 0.3–0.8: bigger penalty; >0.8: nogo
+        if (rain > 0.8) return 'nogo';
+        else if (rain > 0.3) score -= 40;
+        else if (rain > 0.05) score -= 15;
+      } else if (sport === 'Laufen') {
+        // Gradual penalty: 0→100%, 0-1→90%, 1-3→70%, 3-6→40%, >6→nogo
+        if (rain > 6.0) return 'nogo';
+        else if (rain > 3.0) score -= 60;
+        else if (rain > 1.0) score -= 30;
+        else if (rain > 0.05) score -= 10;
+      } else {
+        // Generic fallback
+        if (rain > t.maxRain) score -= 40 + Math.min(40, (rain - t.maxRain) * 10);
+      }
+    }
+
     score = Math.max(0, Math.min(100, Math.round(score)));
     return score >= 70 ? 'go' : score >= 40 ? 'maybe' : 'nogo';
   }
@@ -1141,7 +1232,7 @@
 
       if (code >= 95) { hasThunder = true; continue; } // thunderstorm = nogo
       if (rain > 0.05) hasRain = true;
-      if ((sportName === 'Radfahren' || sportName === 'Klettern') && rain > 0.05) continue; // any rain = nogo for these sports
+      if (sportName === 'Klettern' && rain > 0.05) continue; // Klettern: any rain = skip (day-level)
       
       const s = scoreHour(sportName, temp, rain, wind, null, code);
       if (s === 'go') goodScore += 1;
@@ -1149,8 +1240,8 @@
     }
 
     const pct = total > 0 ? Math.round((goodScore / total) * 100) : null;
-    // Any rain = nogo for the whole day for Klettern and Radfahren
-    if ((sportName === 'Radfahren' || sportName === 'Klettern') && hasRain) {
+    // Only Klettern gets day-level nogo for any rain
+    if (sportName === 'Klettern' && hasRain) {
       return { pct: 0, hasThunder, hasRain };
     }
     return { pct, hasThunder, hasRain };
@@ -1191,11 +1282,9 @@
       return;
     } else {
       displayPct = pct;
-      if ((selectedSport === 'Radfahren' || selectedSport === 'Klettern') && hasRain) {
+      if (selectedSport === 'Klettern' && hasRain) {
         status = 'nogo'; color = 'var(--red)';
-        statusText = selectedSport === 'Klettern'
-          ? '🧗 Regen vorhergesagt – Fels wird nass!'
-          : '🚴 Regen vorhergesagt – kein Radfahren!';
+        statusText = '🧗 Regen vorhergesagt – Fels wird nass!';
       } else if (pct >= 70) {
         status = 'go'; color = 'var(--green)'; statusText = 'Toller Tag! 🟢';
       } else if (pct >= 40) {
@@ -1224,13 +1313,8 @@
         const result = calcSportScore(selectedSport, stats);
         issues = result.issues;
       }
-      if ((selectedSport === 'Radfahren' || selectedSport === 'Klettern') && hasRain) {
-        issues = [
-          selectedSport === 'Klettern'
-            ? '🌧️ Regen am Tag vorhergesagt – Fels nass, kein Klettern!'
-            : '🌧️ Regen am Tag vorhergesagt – Straße nass, Rutschgefahr',
-          ...issues
-        ];
+      if (selectedSport === 'Klettern' && hasRain) {
+        issues = ['🌧️ Regen am Tag vorhergesagt – Fels nass, kein Klettern!', ...issues];
       }
     }
 
@@ -1256,12 +1340,17 @@
 
   function selectDay(idx) {
     selectedDayIndex = parseInt(idx);
-    renderForDay(selectedDayIndex);
+    renderForDay(selectedDayIndex, true); // update stats immediately
+    // Scroll to that day's separator in the hourly strip
+    requestAnimationFrame(() => {
+      const sep = document.querySelector(`.day-separator[data-day-idx="${selectedDayIndex}"]`);
+      if (sep) sep.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    });
   }
 
   // ─── RENDER FOR SELECTED DAY ──────────────────────────────────────────────────
 
-  function renderForDay(dayIdx) {
+  function renderForDay(dayIdx, skipHourly = false) {
     const days = getDaysList();
     const dateStr = days[dayIdx];
     if (!dateStr) return;
@@ -1321,7 +1410,7 @@
       renderSportScores(stats);
     }
 
-    renderHourlyView(dayIdx);
+    if (!skipHourly) renderHourlyView(dayIdx);
 
     // Update timestamp label
     const days2 = getDaysList();
@@ -1351,54 +1440,278 @@
       `<div style="grid-column:1/-1;color:var(--text-muted);font-size:0.8rem">${msg}</div>`;
   }
 
-  function renderHourlyView(dayIdx) {
+  function renderHourlyView(focusDayIdx) {
     if (!forecastData) { document.getElementById('hourlyCard').style.display = 'none'; return; }
     const days = getDaysList();
-    const dateStr = days[dayIdx];
-    if (!dateStr) { document.getElementById('hourlyCard').style.display = 'none'; return; }
+    if (!days.length) { document.getElementById('hourlyCard').style.display = 'none'; return; }
 
-    const times  = forecastData.time;
-    const temps  = forecastData.temperature_2m;
-    const rains  = forecastData.precipitation;
-    const winds  = forecastData.wind_speed_10m;
-    const codes  = forecastData.weather_code;
-    const sport  = SPORTS[selectedSport];
-      const nowH   = new Date().getHours();
+    const sport = SPORTS[selectedSport];
+    const nowH  = new Date().getHours();
+    const DE_DAYS = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 
-    let cells = '';
-    for (let i = 0; i < times.length; i++) {
-      if (!times[i].startsWith(dateStr)) continue;
-      const hour = parseInt(times[i].slice(11, 13));
-      if (hour < 6 || hour > 22) continue;
+    let allCells = '';
 
-      const temp = temps[i], rain = rains[i], wind = winds[i], code = codes[i];
-      const hrStatus = scoreHour(selectedSport, temp, rain, wind, null, code);
-      let cls = hrStatus === 'go' ? 'hc-go' : hrStatus === 'maybe' ? 'hc-maybe' : 'hc-nogo';
+    for (let dayIdx = 0; dayIdx < days.length; dayIdx++) {
+      const dateStr = days[dayIdx];
+      const d = new Date(dateStr + 'T12:00');
+      const dayLabel = dayIdx === 0 ? 'Heute' : dayIdx === 1 ? 'Morgen' : DE_DAYS[d.getDay()];
+      const dayNum   = `${d.getDate()}.${d.getMonth()+1}.`;
 
-      const isNow = (dayIdx === 0 && hour === nowH);
-      const rainStr = rain > 0 ? `${rain.toFixed(1)}mm` : '';
-
-      cells += `<div class="hourly-cell ${cls}${isNow ? ' hc-now' : ''}">
-        <div class="hc-time">${String(hour).padStart(2,'0')}:00</div>
-        <span class="hc-icon">${wmoEmoji(code)}</span>
-        <div class="hc-temp">${temp !== null ? temp.toFixed(0) + '°' : '–'}</div>
-        <div class="hc-rain">${rainStr || '☀'}</div>
+      // Day separator cell
+      allCells += `<div class="day-separator" data-day-idx="${dayIdx}">
+        <div class="day-sep-name">${dayLabel}</div>
+        <div class="day-sep-date">${dayNum}</div>
       </div>`;
+
+      // Collect hourly data
+      const times = forecastData.time;
+      const hourSlots = [];
+      for (let i = 0; i < times.length; i++) {
+        if (!times[i].startsWith(dateStr)) continue;
+        const hour = parseInt(times[i].slice(11, 13));
+        if (hour < 6 || hour > 22) continue;
+        hourSlots.push({
+          hour,
+          temp: forecastData.temperature_2m[i],
+          rain: forecastData.precipitation[i],
+          wind: forecastData.wind_speed_10m[i],
+          code: forecastData.weather_code[i],
+        });
+      }
+
+      // Build 3h blocks
+      for (let start = 6; start <= 22; start += 3) {
+        const end   = Math.min(start + 2, 22);
+        const slots = hourSlots.filter(s => s.hour >= start && s.hour <= end);
+        if (!slots.length) continue;
+
+        const blockTemps = slots.map(s => s.temp).filter(v => v !== null);
+        const blockRains = slots.map(s => s.rain).filter(v => v !== null);
+        const blockWinds = slots.map(s => s.wind).filter(v => v !== null);
+
+        const tempMin  = blockTemps.length ? Math.min(...blockTemps) : null;
+        const tempMax  = blockTemps.length ? Math.max(...blockTemps) : null;
+        const tempAvg  = blockTemps.length ? blockTemps.reduce((a,b)=>a+b,0)/blockTemps.length : null;
+        const rainSum  = blockRains.length ? blockRains.reduce((a,b)=>a+b,0) : null;
+        const windMax  = blockWinds.length ? Math.max(...blockWinds) : null;
+        const worstCode = slots.map(s=>s.code).reduce((a,b)=>b>a?b:a,0);
+        const worstStatus = slots.reduce((worst, s) => {
+          const st = scoreHour(selectedSport, s.temp, s.rain, s.wind, null, s.code);
+          if (st==='nogo') return 'nogo';
+          if (st==='maybe' && worst!=='nogo') return 'maybe';
+          return worst;
+        }, 'go');
+
+        const isNow    = dayIdx === 0 && nowH >= start && nowH <= end;
+        const cls      = worstStatus==='go'?'hc-go':worstStatus==='maybe'?'hc-maybe':'hc-nogo';
+        const timeStr  = `${String(start).padStart(2,'0')}–${String(end).padStart(2,'0')}`;
+        const tempStr  = tempAvg !== null ? tempAvg.toFixed(0)+'°' : '–';
+        const tempRange = (tempMin!==null && tempMax!==null && Math.round(tempMax)!==Math.round(tempMin))
+          ? `${tempMin.toFixed(0)}°–${tempMax.toFixed(0)}°` : '';
+        const rainStr  = (rainSum!==null && rainSum>0.05) ? `🌧 ${rainSum.toFixed(1)}mm` : '☀';
+        const windStr  = windMax!==null ? `💨 ${Math.round(windMax)}` : '';
+
+        allCells += `<div class="hourly-cell ${cls}${isNow?' hc-now':''}" style="cursor:pointer" onclick="openBlockModal(${dayIdx},${start},${end})">
+          <div class="hc-time">${timeStr}</div>
+          <span class="hc-icon">${wmoEmoji(worstCode)}</span>
+          <div class="hc-temp">${tempStr}</div>
+          ${tempRange?`<div class="hc-temp-range">${tempRange}</div>`:''}
+          <div class="hc-rain">${rainStr}</div>
+          ${windStr?`<div class="hc-wind">${windStr}</div>`:''}
+        </div>`;
+      }
     }
 
-    const DE_DAYS = ['So','Mo','Di','Mi','Do','Fr','Sa'];
-    const d = new Date(dateStr + 'T12:00');
-    const dayLabel = dayIdx === 0 ? 'Heute' : dayIdx === 1 ? 'Morgen' : DE_DAYS[d.getDay()];
     document.getElementById('hourlyCardLabel').textContent =
-      `🕐 Stündlich – ${dayLabel}, ${d.getDate()}.${d.getMonth()+1}. (${sport.emoji} ${selectedSport})`;
+      `🕐 3h-Blöcke · scroll → (${sport.emoji} ${selectedSport})`;
     document.getElementById('hourlyContent').innerHTML =
-      `<div class="hourly-row">${cells || '<span style="color:var(--text-muted)">Keine Daten</span>'}</div>
+      `<div class="hourly-row" id="hourlyScrollContainer">${allCells}</div>
        <div style="margin-top:8px;font-size:0.7rem;color:var(--text-muted)">
          <span style="background:#0d3320;padding:1px 6px;border-radius:3px">Grün = ideal</span> &nbsp;
          <span style="background:#2d1f07;padding:1px 6px;border-radius:3px">Gelb = akzeptabel</span> &nbsp;
          <span style="background:#2a0d0d;padding:1px 6px;border-radius:3px">Rot = nicht empfohlen</span>
        </div>`;
     document.getElementById('hourlyCard').style.display = '';
+
+    // Scroll to focused day + wire up scroll listener for auto-day-switch
+    requestAnimationFrame(() => {
+      const container = document.getElementById('hourlyScrollContainer');
+      if (!container) return;
+
+      // Scroll to focused day
+      const focusSep = container.querySelector(`.day-separator[data-day-idx="${focusDayIdx}"]`);
+      if (focusSep) focusSep.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'start' });
+
+      // Remove old scroll listener
+      if (hourlyScrollListener) container.removeEventListener('scroll', hourlyScrollListener);
+
+      // New scroll listener: detect which day's separator is at left edge
+      hourlyScrollListener = () => {
+        const containerLeft = container.getBoundingClientRect().left;
+        let currentDay = 0;
+        container.querySelectorAll('.day-separator').forEach(sep => {
+          const sepLeft = sep.getBoundingClientRect().left - containerLeft;
+          if (sepLeft <= 30) currentDay = parseInt(sep.dataset.dayIdx);
+        });
+        if (currentDay !== selectedDayIndex) {
+          selectedDayIndex = currentDay;
+          document.getElementById('daySelect').value = String(currentDay);
+          renderForDay(currentDay, true);
+        }
+      };
+      container.addEventListener('scroll', hourlyScrollListener, { passive: true });
+
+      // ── Mouse drag-to-scroll (Desktop) ───────────────────────────────────────
+      let isDragging = false, dragStartX = 0, scrollStartLeft = 0, hasDragged = false;
+      container.style.cursor = 'grab';
+
+      container.addEventListener('mousedown', e => {
+        isDragging = true;
+        hasDragged = false;
+        dragStartX = e.clientX;
+        scrollStartLeft = container.scrollLeft;
+        container.style.cursor = 'grabbing';
+        container.style.userSelect = 'none';
+      });
+
+      window.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        const dx = e.clientX - dragStartX;
+        if (Math.abs(dx) > 5) hasDragged = true;
+        container.scrollLeft = scrollStartLeft - dx;
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          container.style.cursor = 'grab';
+          container.style.userSelect = '';
+        }
+      });
+
+      // Suppress click after drag so cells don't fire accidentally
+      container.addEventListener('click', e => {
+        if (hasDragged) { e.stopPropagation(); hasDragged = false; }
+      }, true);
+    });
+  }
+
+  function closeBlockModal(e) {
+    if (e.target === document.getElementById('blockModal')) {
+      document.getElementById('blockModal').style.display = 'none';
+    }
+  }
+
+  function openBlockModal(dayIdx, blockStart, blockEnd) {
+    if (!forecastData) return;
+    const days = getDaysList();
+    const dateStr = days[dayIdx];
+    if (!dateStr) return;
+
+    const times  = forecastData.time;
+    const temps  = forecastData.temperature_2m;
+    const rains  = forecastData.precipitation;
+    const winds  = forecastData.wind_speed_10m;
+    const codes  = forecastData.weather_code;
+    const humids = forecastData.relative_humidity_2m;
+
+    // Collect hours in this block from Open-Meteo
+    const omHours = [];
+    for (let i = 0; i < times.length; i++) {
+      if (!times[i].startsWith(dateStr)) continue;
+      const hour = parseInt(times[i].slice(11, 13));
+      if (hour < blockStart || hour > blockEnd) continue;
+      omHours.push({ hour, temp: temps[i], rain: rains[i], wind: winds[i], humidity: humids[i], code: codes[i] });
+    }
+
+    // Collect same hours from Bright Sky forecast (if available)
+    const bsHours = [];
+    if (forecastDataBS) {
+      for (let i = 0; i < forecastDataBS.time.length; i++) {
+        if (!forecastDataBS.time[i].startsWith(dateStr)) continue;
+        const hour = parseInt(forecastDataBS.time[i].slice(11, 13));
+        if (hour < blockStart || hour > blockEnd) continue;
+        bsHours.push({
+          hour,
+          temp: forecastDataBS.temperature_2m[i],
+          rain: forecastDataBS.precipitation[i],
+          wind: forecastDataBS.wind_speed_10m[i],
+          humidity: forecastDataBS.relative_humidity_2m[i],
+          code: forecastDataBS.weather_code[i],
+        });
+      }
+    }
+
+    const sport = SPORTS[selectedSport];
+    const DE_DAYS = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    const d = new Date(dateStr + 'T12:00');
+    const dayLabel = dayIdx === 0 ? 'Heute' : dayIdx === 1 ? 'Morgen' : DE_DAYS[d.getDay()];
+
+    // Build hour rows
+    let hoursHtml = '';
+    for (const om of omHours) {
+      const bs = bsHours.find(b => b.hour === om.hour);
+      const status = scoreHour(selectedSport, om.temp, om.rain, om.wind, om.humidity, om.code);
+      const statusCls = status;
+
+      // Variance between OM and BS
+      const tempDiff = (bs && om.temp !== null && bs.temp !== null) ? Math.abs(om.temp - bs.temp).toFixed(1) : null;
+      const rainDiff = (bs && om.rain !== null && bs.rain !== null) ? Math.abs(om.rain - bs.rain).toFixed(1) : null;
+
+      const bsStatus = bs ? scoreHour(selectedSport, bs.temp, bs.rain, bs.wind, bs.humidity, bs.code) : null;
+      const bsDot = bsStatus ? (bsStatus === 'go' ? '🟢' : bsStatus === 'maybe' ? '🟡' : '🔴') : '';
+
+      hoursHtml += `
+        <div class="modal-hour-row">
+          <div class="modal-hour-badge ${statusCls}">${String(om.hour).padStart(2,'0')}:00</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span>${wmoEmoji(om.code)} ${om.temp !== null ? om.temp.toFixed(1) + '°C' : '–'}</span>
+              <span style="font-size:0.75rem;color:#94a3b8">💨 ${om.wind !== null ? Math.round(om.wind) + ' km/h' : '–'} &nbsp; 💧 ${om.rain > 0 ? om.rain.toFixed(1) + 'mm' : '–'}</span>
+            </div>
+            ${tempDiff !== null ? `
+            <div style="font-size:0.68rem;color:#64748b;margin-bottom:3px">
+              Quellen: OM ${om.temp !== null ? om.temp.toFixed(1) + '°' : '–'} / BS ${bs.temp !== null ? bs.temp.toFixed(1) + '°' : '–'}
+              ${bsDot ? '→ BS: ' + bsDot : ''}
+              ${parseFloat(tempDiff) > 2 ? ' ⚠️ Streuung ' + tempDiff + '°' : ''}
+            </div>` : ''}
+            ${om.rain > 0.05 ? `<div style="font-size:0.72rem;color:#93c5fd">🌧️ ${om.rain.toFixed(1)}mm/h ${sport.reasons.rain}</div>` : ''}
+          </div>
+        </div>`;
+    }
+
+    // Overall block variance
+    const allTempsOM = omHours.map(h => h.temp).filter(v => v !== null);
+    const allTempBS  = bsHours.map(h => h.temp).filter(v => v !== null);
+    const allRainOM  = omHours.map(h => h.rain).filter(v => v !== null);
+    const allRainBS  = bsHours.map(h => h.rain).filter(v => v !== null);
+
+    const omTempAvg = allTempsOM.length ? (allTempsOM.reduce((a,b)=>a+b,0)/allTempsOM.length).toFixed(1) : '–';
+    const bsTempAvg = allTempBS.length  ? (allTempBS.reduce((a,b)=>a+b,0)/allTempBS.length).toFixed(1)  : '–';
+    const omRainMax = allRainOM.length  ? Math.max(...allRainOM).toFixed(1) : '–';
+    const bsRainMax = allRainBS.length  ? Math.max(...allRainBS).toFixed(1) : '–';
+
+    const varHtml = (forecastDataBS && bsHours.length) ? `
+      <div style="background:#0f172a;border-radius:8px;padding:10px;margin-bottom:14px;font-size:0.78rem">
+        <div style="font-weight:700;margin-bottom:6px;color:#94a3b8">📊 Quellenvergleich (Ø dieses Block)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;text-align:center">
+          <div></div><div style="color:#64748b;font-size:0.65rem">Open-Meteo</div><div style="color:#64748b;font-size:0.65rem">Bright Sky</div>
+          <div style="color:#94a3b8">🌡️ Temp</div><div>${omTempAvg}°C</div><div>${bsTempAvg}°C</div>
+          <div style="color:#94a3b8">🌧️ Regen</div><div>max ${omRainMax}mm</div><div>max ${bsRainMax}mm</div>
+        </div>
+      </div>` : '';
+
+    document.getElementById('blockModalBody').innerHTML = `
+      <div style="font-size:1.1rem;font-weight:800;margin-bottom:4px">
+        ${sport.emoji} ${selectedSport} · ${String(blockStart).padStart(2,'0')}–${String(blockEnd).padStart(2,'0')} Uhr
+      </div>
+      <div style="color:#64748b;font-size:0.8rem;margin-bottom:14px">${dayLabel}, ${d.getDate()}.${d.getMonth()+1}.</div>
+      ${varHtml}
+      <div style="font-weight:600;font-size:0.8rem;color:#94a3b8;margin-bottom:6px">Stündliche Aufschlüsselung</div>
+      ${hoursHtml || '<div style="color:#64748b">Keine Daten</div>'}
+    `;
+
+    document.getElementById('blockModal').style.display = 'block';
   }
 
   // ─── FETCH HELPERS ───────────────────────────────────────────────────────────
