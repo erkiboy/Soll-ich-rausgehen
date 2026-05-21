@@ -603,6 +603,47 @@
     }
     .refresh-btn:hover { background: var(--surface); border-color: var(--blue); color: var(--blue); }
 
+    /* DAY TAB BAR */
+    .day-tab-bar {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: #0b1220;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      gap: 0;
+      padding: 0;
+    }
+    .day-tab-bar::-webkit-scrollbar { display: none; }
+    .day-tab {
+      flex: 1 0 0;
+      min-width: 64px;
+      padding: 10px 4px 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      scroll-snap-align: start;
+      border-bottom: 3px solid transparent;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+      font-family: inherit;
+    }
+    .day-tab:hover { background: var(--surface); color: var(--text); }
+    .day-tab.active {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+      background: #0c1e30;
+    }
+    .day-tab-name { font-size: 0.78rem; font-weight: 700; line-height: 1; }
+    .day-tab-date { font-size: 0.65rem; line-height: 1; }
+
     /* BLOCK MODAL */
     .modal-hour-row {
       display: flex;
@@ -640,19 +681,64 @@
 </head>
 <body>
 
-<header>
+<header style="position:relative">
+  <button id="settingsBtn" onclick="openSettings()" title="Einstellungen" style="position:absolute;top:0;right:0;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:50%;width:38px;height:38px;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">⋮</button>
   <div style="font-size:2.5rem; margin-bottom:6px">🏔️</div>
   <h1>Soll ich rausgehen?</h1>
-  <p class="subtitle">Median aus 4 Wetterquellen · Österreich</p>
+  <p class="subtitle">Median aus 4 Wetterquellen · Europa</p>
   <div class="controls">
     <select id="locationSelect" onchange="loadWeather()">
-      <option value="Wien">📍 Wien</option>
-      <option value="Salzburg" selected>📍 Salzburg</option>
-      <option value="Obertrum">📍 Obertrum am See</option>
-      <option value="Graz">📍 Graz</option>
-    </select>
-    <select id="daySelect" onchange="selectDay(this.value)">
-      <option value="0">📅 Heute</option>
+      <optgroup label="🇦🇹 Österreich">
+        <option value="Wien">📍 Wien</option>
+        <option value="Salzburg">📍 Salzburg</option>
+        <option value="Obertrum am See">📍 Obertrum am See</option>
+        <option value="Graz">📍 Graz</option>
+      </optgroup>
+      <optgroup label="🌍 Europäische Hauptstädte">
+        <option value="Amsterdam">📍 Amsterdam</option>
+        <option value="Andorra la Vella">📍 Andorra la Vella</option>
+        <option value="Athen">📍 Athen</option>
+        <option value="Belgrad">📍 Belgrad</option>
+        <option value="Berlin">📍 Berlin</option>
+        <option value="Bern">📍 Bern</option>
+        <option value="Bratislava">📍 Bratislava</option>
+        <option value="Brüssel">📍 Brüssel</option>
+        <option value="Budapest">📍 Budapest</option>
+        <option value="Bukarest">📍 Bukarest</option>
+        <option value="Dublin">📍 Dublin</option>
+        <option value="Helsinki">📍 Helsinki</option>
+        <option value="Kiew">📍 Kiew</option>
+        <option value="Kopenhagen">📍 Kopenhagen</option>
+        <option value="Lissabon">📍 Lissabon</option>
+        <option value="Ljubljana">📍 Ljubljana</option>
+        <option value="London">📍 London</option>
+        <option value="Luxemburg">📍 Luxemburg</option>
+        <option value="Madrid">📍 Madrid</option>
+        <option value="Minsk">📍 Minsk</option>
+        <option value="Monaco">📍 Monaco</option>
+        <option value="Moskau">📍 Moskau</option>
+        <option value="Nikosia">📍 Nikosia</option>
+        <option value="Oslo">📍 Oslo</option>
+        <option value="Paris">📍 Paris</option>
+        <option value="Podgorica">📍 Podgorica</option>
+        <option value="Prag">📍 Prag</option>
+        <option value="Pristina">📍 Pristina</option>
+        <option value="Reykjavik">📍 Reykjavik</option>
+        <option value="Riga">📍 Riga</option>
+        <option value="Rom">📍 Rom</option>
+        <option value="San Marino">📍 San Marino</option>
+        <option value="Sarajevo">📍 Sarajevo</option>
+        <option value="Skopje">📍 Skopje</option>
+        <option value="Sofia">📍 Sofia</option>
+        <option value="Stockholm">📍 Stockholm</option>
+        <option value="Tallinn">📍 Tallinn</option>
+        <option value="Tirana">📍 Tirana</option>
+        <option value="Vaduz">📍 Vaduz</option>
+        <option value="Valletta">📍 Valletta</option>
+        <option value="Vilnius">📍 Vilnius</option>
+        <option value="Warschau">📍 Warschau</option>
+        <option value="Zagreb">📍 Zagreb</option>
+      </optgroup>
     </select>
     <div class="sport-btns" id="sportBtns">
       <button class="sport-btn active" data-sport="Klettern" onclick="selectSport(this)">🧗 Klettern</button>
@@ -664,11 +750,97 @@
   <button class="refresh-btn" onclick="loadWeather()">🔄 Aktualisieren</button>
 </header>
 
+<!-- DAY TAB BAR -->
+<div id="dayTabBar" class="day-tab-bar"></div>
+
 <!-- DETAIL POPUP MODAL -->
 <div id="blockModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; overflow-y:auto; padding:20px; box-sizing:border-box;" onclick="closeBlockModal(event)">
   <div id="blockModalContent" style="max-width:480px; margin:40px auto; background:#1e293b; border:1px solid #334155; border-radius:16px; padding:24px; position:relative;">
     <button onclick="document.getElementById('blockModal').style.display='none'" style="position:absolute;top:12px;right:12px;background:#334155;border:none;color:#94a3b8;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:1rem;line-height:28px;text-align:center;">✕</button>
     <div id="blockModalBody"></div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div id="settingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:1100; display:none; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
+  <div style="width:100%; max-width:380px; background:#1e293b; border:1px solid #334155; border-radius:18px; padding:28px 24px; position:relative;">
+    <button onclick="closeSettings()" style="position:absolute;top:12px;right:12px;background:#334155;border:none;color:#94a3b8;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:1rem;">✕</button>
+    <h2 id="settingsDialogTitle" style="margin:0 0 6px;font-size:1.2rem;">⚙️ Einstellungen</h2>
+    <p id="settingsDialogSub" style="color:var(--text-muted);font-size:0.82rem;margin:0 0 22px">Standardwerte werden dauerhaft gespeichert.</p>
+
+    <label id="settingsLocLabel" style="display:block;font-size:0.85rem;color:var(--text-muted);margin-bottom:6px">📍 Standard-Ort</label>
+    <select id="settingsLocation" style="width:100%;margin-bottom:20px">
+      <optgroup label="🇦🇹 Österreich">
+        <option value="Wien">Wien</option>
+        <option value="Salzburg">Salzburg</option>
+        <option value="Obertrum am See">Obertrum am See</option>
+        <option value="Graz">Graz</option>
+      </optgroup>
+      <optgroup label="🌍 Europäische Hauptstädte">
+        <option value="Amsterdam">Amsterdam</option>
+        <option value="Andorra la Vella">Andorra la Vella</option>
+        <option value="Athen">Athen</option>
+        <option value="Belgrad">Belgrad</option>
+        <option value="Berlin">Berlin</option>
+        <option value="Bern">Bern</option>
+        <option value="Bratislava">Bratislava</option>
+        <option value="Brüssel">Brüssel</option>
+        <option value="Budapest">Budapest</option>
+        <option value="Bukarest">Bukarest</option>
+        <option value="Dublin">Dublin</option>
+        <option value="Helsinki">Helsinki</option>
+        <option value="Kiew">Kiew</option>
+        <option value="Kopenhagen">Kopenhagen</option>
+        <option value="Lissabon">Lissabon</option>
+        <option value="Ljubljana">Ljubljana</option>
+        <option value="London">London</option>
+        <option value="Luxemburg">Luxemburg</option>
+        <option value="Madrid">Madrid</option>
+        <option value="Minsk">Minsk</option>
+        <option value="Monaco">Monaco</option>
+        <option value="Moskau">Moskau</option>
+        <option value="Nikosia">Nikosia</option>
+        <option value="Oslo">Oslo</option>
+        <option value="Paris">Paris</option>
+        <option value="Podgorica">Podgorica</option>
+        <option value="Prag">Prag</option>
+        <option value="Pristina">Pristina</option>
+        <option value="Reykjavik">Reykjavik</option>
+        <option value="Riga">Riga</option>
+        <option value="Rom">Rom</option>
+        <option value="San Marino">San Marino</option>
+        <option value="Sarajevo">Sarajevo</option>
+        <option value="Skopje">Skopje</option>
+        <option value="Sofia">Sofia</option>
+        <option value="Stockholm">Stockholm</option>
+        <option value="Tallinn">Tallinn</option>
+        <option value="Tirana">Tirana</option>
+        <option value="Vaduz">Vaduz</option>
+        <option value="Valletta">Valletta</option>
+        <option value="Vilnius">Vilnius</option>
+        <option value="Warschau">Warschau</option>
+        <option value="Zagreb">Zagreb</option>
+      </optgroup>
+    </select>
+
+    <label id="settingsSportLabel" style="display:block;font-size:0.85rem;color:var(--text-muted);margin-bottom:6px">🏃 Standard-Sportart</label>
+    <select id="settingsSport" style="width:100%;margin-bottom:20px">
+      <option value="Klettern">🧗 Klettern</option>
+      <option value="Radfahren">🚴 Radfahren</option>
+      <option value="Wandern">🥾 Wandern</option>
+      <option value="Laufen">🏃 Laufen</option>
+    </select>
+
+    <label id="settingsLangLabel" style="display:block;font-size:0.85rem;color:var(--text-muted);margin-bottom:6px">🌐 Sprache</label>
+    <select id="settingsLang" style="width:100%;margin-bottom:28px">
+      <option value="de">🇩🇪 Deutsch</option>
+      <option value="en">🇬🇧 English</option>
+    </select>
+
+    <div style="display:flex;gap:12px">
+      <button id="settingsCancelBtn" onclick="closeSettings()" style="flex:1;padding:12px;background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:10px;font-size:0.95rem;cursor:pointer;">Abbrechen</button>
+      <button id="settingsSaveBtn" onclick="saveSettings()" style="flex:2;padding:12px;background:var(--blue);border:none;color:#fff;border-radius:10px;font-size:0.95rem;font-weight:700;cursor:pointer;">💾 Speichern &amp; Anwenden</button>
+    </div>
   </div>
 </div>
 
@@ -805,7 +977,7 @@
 
 </div>
 <div class="sport-scores-card">
-  <div class="card-label">🔍 Andere Sportarten im Vergleich</div>
+  <div class="card-label" id="sportScoresTitle">🔍 Andere Sportarten im Vergleich</div>
   <div class="sport-scores-grid" id="sportScoresGrid">
     <div style="color:var(--text-muted); font-size:0.9rem;">Warte auf Daten…</div>
   </div>
@@ -823,10 +995,55 @@
   // ─── CONFIG ─────────────────────────────────────────────────────────────────
 
   const LOCATIONS = {
-    'Wien':      { lat: 48.2082, lon: 16.3738, wttr: 'Wien',            geosphere: '11035' },
-    'Salzburg':  { lat: 47.8095, lon: 13.0550, wttr: 'Salzburg',        geosphere: '11150' },
-    'Obertrum':  { lat: 47.9333, lon: 13.0833, wttr: 'Obertrum+am+See', geosphere: '11150' }, // nächste Station: Salzburg
-    'Graz':      { lat: 47.0707, lon: 15.4395, wttr: 'Graz',            geosphere: '11244' },
+    // ── Österreich ───────────────────────────────────────────
+    'Wien':             { lat: 48.2082, lon: 16.3738, wttr: 'Wien',            geosphere: '11035' },
+    'Salzburg':         { lat: 47.8095, lon: 13.0550, wttr: 'Salzburg',        geosphere: '11150' },
+    'Obertrum am See':  { lat: 47.9333, lon: 13.0833, wttr: 'Obertrum+am+See', geosphere: '11150' },
+    'Graz':             { lat: 47.0707, lon: 15.4395, wttr: 'Graz',            geosphere: '11244' },
+    // ── Europa – Hauptstädte ────────────────────────────────
+    'Amsterdam':        { lat: 52.3676, lon:  4.9041, wttr: 'Amsterdam',       geosphere: null },
+    'Andorra la Vella': { lat: 42.5063, lon:  1.5218, wttr: 'Andorra+la+Vella',geosphere: null },
+    'Athen':            { lat: 37.9838, lon: 23.7275, wttr: 'Athens',          geosphere: null },
+    'Bern':             { lat: 46.9480, lon:  7.4474, wttr: 'Bern',            geosphere: null },
+    'Belgrad':          { lat: 44.7866, lon: 20.4489, wttr: 'Belgrade',        geosphere: null },
+    'Berlin':           { lat: 52.5200, lon: 13.4050, wttr: 'Berlin',          geosphere: null },
+    'Bratislava':       { lat: 48.1486, lon: 17.1077, wttr: 'Bratislava',      geosphere: null },
+    'Brüssel':          { lat: 50.8503, lon:  4.3517, wttr: 'Brussels',        geosphere: null },
+    'Bukarest':         { lat: 44.4268, lon: 26.1025, wttr: 'Bucharest',       geosphere: null },
+    'Budapest':         { lat: 47.4979, lon: 19.0402, wttr: 'Budapest',        geosphere: null },
+    'Dublin':           { lat: 53.3498, lon: -6.2603, wttr: 'Dublin',          geosphere: null },
+    'Helsinki':         { lat: 60.1699, lon: 24.9384, wttr: 'Helsinki',        geosphere: null },
+    'Kiew':             { lat: 50.4501, lon: 30.5234, wttr: 'Kyiv',            geosphere: null },
+    'Kopenhagen':       { lat: 55.6761, lon: 12.5683, wttr: 'Copenhagen',      geosphere: null },
+    'Lissabon':         { lat: 38.7223, lon: -9.1393, wttr: 'Lisbon',          geosphere: null },
+    'Ljubljana':        { lat: 46.0569, lon: 14.5058, wttr: 'Ljubljana',       geosphere: null },
+    'London':           { lat: 51.5074, lon: -0.1278, wttr: 'London',          geosphere: null },
+    'Luxemburg':        { lat: 49.6117, lon:  6.1319, wttr: 'Luxembourg',      geosphere: null },
+    'Madrid':           { lat: 40.4168, lon: -3.7038, wttr: 'Madrid',          geosphere: null },
+    'Minsk':            { lat: 53.9045, lon: 27.5615, wttr: 'Minsk',           geosphere: null },
+    'Monaco':           { lat: 43.7384, lon:  7.4246, wttr: 'Monaco',          geosphere: null },
+    'Moskau':           { lat: 55.7558, lon: 37.6173, wttr: 'Moscow',          geosphere: null },
+    'Nikosia':          { lat: 35.1856, lon: 33.3823, wttr: 'Nicosia',         geosphere: null },
+    'Oslo':             { lat: 59.9139, lon: 10.7522, wttr: 'Oslo',            geosphere: null },
+    'Paris':            { lat: 48.8566, lon:  2.3522, wttr: 'Paris',           geosphere: null },
+    'Podgorica':        { lat: 42.4304, lon: 19.2594, wttr: 'Podgorica',       geosphere: null },
+    'Prag':             { lat: 50.0755, lon: 14.4378, wttr: 'Prague',          geosphere: null },
+    'Pristina':         { lat: 42.6629, lon: 21.1655, wttr: 'Pristina',        geosphere: null },
+    'Reykjavik':        { lat: 64.1355, lon:-21.8954, wttr: 'Reykjavik',       geosphere: null },
+    'Riga':             { lat: 56.9460, lon: 24.1059, wttr: 'Riga',            geosphere: null },
+    'Rom':              { lat: 41.9028, lon: 12.4964, wttr: 'Rome',            geosphere: null },
+    'San Marino':       { lat: 43.9424, lon: 12.4578, wttr: 'San+Marino',      geosphere: null },
+    'Sarajevo':         { lat: 43.8563, lon: 18.4131, wttr: 'Sarajevo',        geosphere: null },
+    'Skopje':           { lat: 41.9981, lon: 21.4254, wttr: 'Skopje',          geosphere: null },
+    'Sofia':            { lat: 42.6977, lon: 23.3219, wttr: 'Sofia',           geosphere: null },
+    'Stockholm':        { lat: 59.3293, lon: 18.0686, wttr: 'Stockholm',       geosphere: null },
+    'Tallinn':          { lat: 59.4370, lon: 24.7536, wttr: 'Tallinn',         geosphere: null },
+    'Tirana':           { lat: 41.3275, lon: 19.8187, wttr: 'Tirana',          geosphere: null },
+    'Vaduz':            { lat: 47.1410, lon:  9.5215, wttr: 'Vaduz',           geosphere: null },
+    'Valletta':         { lat: 35.8997, lon: 14.5147, wttr: 'Valletta',        geosphere: null },
+    'Warschau':         { lat: 52.2297, lon: 21.0122, wttr: 'Warsaw',          geosphere: null },
+    'Vilnius':          { lat: 54.6872, lon: 25.2797, wttr: 'Vilnius',         geosphere: null },
+    'Zagreb':           { lat: 45.8150, lon: 15.9819, wttr: 'Zagreb',          geosphere: null },
   };
 
   const SPORTS = {
@@ -873,6 +1090,176 @@
   };
 
   let selectedSport = 'Klettern';
+  let currentLang = 'de';
+
+  // ─── TRANSLATIONS ─────────────────────────────────────────────────────────────
+  const TRANSLATIONS = {
+    de: {
+      title:        'Soll ich rausgehen?',
+      subtitle:     'Median aus 4 Wetterquellen · Europa',
+      refresh:      '🔄 Aktualisieren',
+      today:        'Heute',
+      tomorrow:     'Morgen',
+      forecast:     'Prognose',
+      weekdays:     ['So','Mo','Di','Mi','Do','Fr','Sa'],
+      noData:       'Keine Daten',
+      loading:      'Lädt…',
+      // sports display names (keys stay German internally)
+      sportNames:   { Klettern:'🧗 Klettern', Radfahren:'🚴 Radfahren', Wandern:'🥾 Wandern', Laufen:'🏃 Laufen' },
+      // gauge
+      gaugeSuitability: 'Tageseignung',
+      gaugeLoading: 'Wetterdaten werden abgerufen',
+      gaugeThunder: '⛈️ Gewitter – kein Sport!',
+      gaugeKlettRain:'🧗 Regen vorhergesagt – Fels wird nass!',
+      gaugeGo:      'Toller Tag! 🟢',
+      gaugeMaybe:   'Geht so 🟡',
+      gaugeNogo:    'Eher drinbleiben 🔴',
+      gaugeThunderIssue: '⛈️ Gewitter vorhergesagt – alle Outdoor-Aktivitäten gefährlich',
+      gaugeKlettRainIssue: '🌧️ Regen am Tag vorhergesagt – Fels nass, kein Klettern!',
+      // sport score labels
+      scoreGo:      'Top! Raus gehen ✅',
+      scoreMaybe:   'Naja… vielleicht 🤔',
+      scoreNogo:    'Lieber drinbleiben ❌',
+      scorePerfect: 'Perfekte Bedingungen!',
+      // sport reasons
+      reasons: {
+        Klettern: { rain:'Fels ist nass – kein Klettern!', humidity:'Zu hohe Luftfeuchtigkeit – Griffe rutschig', temp:'Zu kalt zum Klettern', wind:'Zu windig am Fels', thunder:'Gewitter – kein Klettern!' },
+        Radfahren:{ rain:'Straße nass – Rutschgefahr', humidity:'Extrem schwül', temp:'Zu kalt – Vorsicht Glätte', wind:'Sturm – gefährlich', thunder:'Gewitter – nicht Radfahren!' },
+        Wandern:  { rain:'Regen – Wege rutschig/schlammig', humidity:'Extrem feucht', temp:'Eisgefahr unter -5°C', wind:'Orkan – gefährlich am Grat', thunder:'Gewitter – kein Wandern!' },
+        Laufen:   { rain:'Starker Regen', humidity:'', temp:'Zu kalt', wind:'Zu windig', thunder:'Gewitter – nicht Laufen!' },
+      },
+      rainHistory: {
+        hoursAgo: (h) => `Vor ${h}h geregnet`,
+        muddy:    '– Wege schlammig',
+        stillWet: '– Wege noch etwas nass',
+      },
+      // sources
+      srcLiveOnly:  'Nur Live-Daten',
+      srcForecast:  '✓ Prognose',
+      srcAvgTemp:   'Ø Temp (Tag)',
+      srcMaxRain:   'Max Regen/h',
+      srcAvgWind:   'Ø Wind',
+      srcAvgHumidity:'Ø Feuchte',
+      // median
+      medianTitle:  'Median (4 Quellen)',
+      medTemp:      'Temp.',
+      medRain:      'Regen',
+      medWind:      'Wind',
+      medHumidity:  'Feuchte',
+      medSun:       'Sonnenstunden',
+      // hourly
+      hourlyLabel:  (sport) => `🕐 3h-Blöcke · scroll → (${sport})`,
+      legendGo:     'Grün = ideal',
+      legendMaybe:  'Gelb = akzeptabel',
+      legendNogo:   'Rot = nicht empfohlen',
+      // uncertainty
+      highVariance: '⚠️ Hohe Varianz zwischen Quellen – Prognose unsicher',
+      // lastUpdate
+      lastUpdateFmt:(dayName, date, loc, time) => time
+        ? `${dayName}, ${date} · ${loc} · ${time} Uhr`
+        : `${dayName}, ${date} · ${loc} · Prognose`,
+      // modal
+      modalHourly:  'Stündliche Aufschlüsselung',
+      modalSources: 'Quellen-Vergleich',
+      modalVariance:'Varianz',
+      modalHighVar: '⚠️ Hohe Differenz zwischen Quellen!',
+      modalRain:    'Regen',
+      modalWind:    'Wind',
+      modalHumidity:'Feuchte',
+      modalStatus:  'Status',
+      // wmo
+      wmo: { clear:'Klarer Himmel', cloudy:'Leicht bewölkt', fog:'Nebelig', drizzle:'Nieselregen', rain:'Regen', snow:'Schneefall', showers:'Regenschauer', snowShowers:'Schneeschauer', thunder:'Gewitter', unknown:'Unbekannt' },
+      // settings
+      settingsTitle:'⚙️ Einstellungen',
+      settingsSub:  'Standardwerte werden dauerhaft gespeichert.',
+      settingsLoc:  '📍 Standard-Ort',
+      settingsSport:'🏃 Standard-Sportart',
+      settingsLang: '🌐 Sprache',
+      langDe:       'Deutsch',
+      langEn:       'English',
+      cancel:       'Abbrechen',
+      saveApply:    '💾 Speichern & Anwenden',
+      // sport scores section title
+      otherSports:  '📊 Andere Sportarten heute',
+    },
+    en: {
+      title:        'Should I go outside?',
+      subtitle:     'Median of 4 weather sources · Europe',
+      refresh:      '🔄 Refresh',
+      today:        'Today',
+      tomorrow:     'Tomorrow',
+      forecast:     'Forecast',
+      weekdays:     ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+      noData:       'No data',
+      loading:      'Loading…',
+      sportNames:   { Klettern:'🧗 Climbing', Radfahren:'🚴 Cycling', Wandern:'🥾 Hiking', Laufen:'🏃 Running' },
+      gaugeSuitability: 'Daily suitability',
+      gaugeLoading: 'Fetching weather data',
+      gaugeThunder: '⛈️ Thunderstorm – no sports!',
+      gaugeKlettRain:'🧗 Rain forecast – rock will be wet!',
+      gaugeGo:      'Great day! 🟢',
+      gaugeMaybe:   'Okay-ish 🟡',
+      gaugeNogo:    'Better stay inside 🔴',
+      gaugeThunderIssue: '⛈️ Thunderstorm forecast – all outdoor activities dangerous',
+      gaugeKlettRainIssue: '🌧️ Rain forecast – wet rock, no climbing!',
+      scoreGo:      'Go for it! ✅',
+      scoreMaybe:   'Maybe… 🤔',
+      scoreNogo:    'Stay inside ❌',
+      scorePerfect: 'Perfect conditions!',
+      reasons: {
+        Klettern: { rain:'Rock is wet – no climbing!', humidity:'Too humid – slippery holds', temp:'Too cold for climbing', wind:'Too windy on the crag', thunder:'Thunderstorm – no climbing!' },
+        Radfahren:{ rain:'Wet roads – skid risk', humidity:'Extremely muggy', temp:'Too cold – black ice risk', wind:'Storm – dangerous', thunder:'Thunderstorm – no cycling!' },
+        Wandern:  { rain:'Rain – slippery/muddy trails', humidity:'Extremely humid', temp:'Ice risk below -5°C', wind:'Hurricane – dangerous on ridges', thunder:'Thunderstorm – no hiking!' },
+        Laufen:   { rain:'Heavy rain', humidity:'', temp:'Too cold', wind:'Too windy', thunder:'Thunderstorm – no running!' },
+      },
+      rainHistory: {
+        hoursAgo: (h) => `Rained ${h}h ago`,
+        muddy:    '– muddy trails',
+        stillWet: '– trails still wet',
+      },
+      srcLiveOnly:  'Live data only',
+      srcForecast:  '✓ Forecast',
+      srcAvgTemp:   'Avg Temp (day)',
+      srcMaxRain:   'Max Rain/h',
+      srcAvgWind:   'Avg Wind',
+      srcAvgHumidity:'Avg Humidity',
+      medianTitle:  'Median (4 sources)',
+      medTemp:      'Temp.',
+      medRain:      'Rain',
+      medWind:      'Wind',
+      medHumidity:  'Humidity',
+      medSun:       'Sunshine',
+      hourlyLabel:  (sport) => `🕐 3h blocks · scroll → (${sport})`,
+      legendGo:     'Green = ideal',
+      legendMaybe:  'Yellow = acceptable',
+      legendNogo:   'Red = not recommended',
+      highVariance: '⚠️ High variance between sources – forecast uncertain',
+      lastUpdateFmt:(dayName, date, loc, time) => time
+        ? `${dayName}, ${date} · ${loc} · ${time}`
+        : `${dayName}, ${date} · ${loc} · Forecast`,
+      modalHourly:  'Hourly breakdown',
+      modalSources: 'Source comparison',
+      modalVariance:'Variance',
+      modalHighVar: '⚠️ High difference between sources!',
+      modalRain:    'Rain',
+      modalWind:    'Wind',
+      modalHumidity:'Humidity',
+      modalStatus:  'Status',
+      wmo: { clear:'Clear sky', cloudy:'Partly cloudy', fog:'Foggy', drizzle:'Drizzle', rain:'Rain', snow:'Snowfall', showers:'Rain showers', snowShowers:'Snow showers', thunder:'Thunderstorm', unknown:'Unknown' },
+      settingsTitle:'⚙️ Settings',
+      settingsSub:  'Defaults are saved permanently.',
+      settingsLoc:  '📍 Default Location',
+      settingsSport:'🏃 Default Sport',
+      settingsLang: '🌐 Language',
+      langDe:       'Deutsch',
+      langEn:       'English',
+      cancel:       'Cancel',
+      saveApply:    '💾 Save & Apply',
+      otherSports:  '📊 Other sports today',
+    },
+  };
+
+  function t(key) { return TRANSLATIONS[currentLang][key]; }
   let lastData = null;
   let lastRainHistory = null;
   let lastRainHistoryLive = null; // always the real measured history for today
@@ -1256,11 +1643,11 @@
     const detailEl = document.getElementById('gaugeDetail');
 
     const sport = SPORTS[selectedSport];
-    sportLbl.textContent = `${sport.emoji} ${selectedSport} – Tageseignung`;
+    sportLbl.textContent = `${sport.emoji} ${t('sportNames')[selectedSport]?.replace(/^[^ ]+ /, '') || selectedSport} – ${t('gaugeSuitability')}`;
 
     if (!forecastData) {
       pctEl.textContent = '–';
-      statusEl.textContent = 'Keine Daten';
+      statusEl.textContent = t('noData');
       card.className = 'gauge-card loading';
       return;
     }
@@ -1272,11 +1659,11 @@
 
     if (hasThunder) {
       status = 'nogo'; color = 'var(--red)';
-      statusText = '⛈️ Gewitter – kein Sport!';
+      statusText = t('gaugeThunder');
       displayPct = 0;
     } else if (pct === null) {
       pctEl.textContent = '–';
-      statusEl.textContent = 'Keine Daten';
+      statusEl.textContent = t('noData');
       card.className = 'gauge-card loading';
       detailEl.innerHTML = '';
       return;
@@ -1284,13 +1671,13 @@
       displayPct = pct;
       if (selectedSport === 'Klettern' && hasRain) {
         status = 'nogo'; color = 'var(--red)';
-        statusText = '🧗 Regen vorhergesagt – Fels wird nass!';
+        statusText = t('gaugeKlettRain');
       } else if (pct >= 70) {
-        status = 'go'; color = 'var(--green)'; statusText = 'Toller Tag! 🟢';
+        status = 'go'; color = 'var(--green)'; statusText = t('gaugeGo');
       } else if (pct >= 40) {
-        status = 'maybe'; color = 'var(--amber)'; statusText = 'Geht so 🟡';
+        status = 'maybe'; color = 'var(--amber)'; statusText = t('gaugeMaybe');
       } else {
-        status = 'nogo'; color = 'var(--red)'; statusText = 'Eher drinbleiben 🔴';
+        status = 'nogo'; color = 'var(--red)'; statusText = t('gaugeNogo');
       }
     }
 
@@ -1304,7 +1691,7 @@
     // Detail issues
     let issues = [];
     if (hasThunder) {
-      issues = ['⛈️ Gewitter vorhergesagt – alle Outdoor-Aktivitäten gefährlich'];
+      issues = [t('gaugeThunderIssue')];
     } else {
       const days = getDaysList();
       const dateStr = days[dayIdx];
@@ -1314,7 +1701,7 @@
         issues = result.issues;
       }
       if (selectedSport === 'Klettern' && hasRain) {
-        issues = ['🌧️ Regen am Tag vorhergesagt – Fels nass, kein Klettern!', ...issues];
+        issues = [t('gaugeKlettRainIssue'), ...issues];
       }
     }
 
@@ -1327,21 +1714,30 @@
 
   function renderDaySelector() {
     if (!forecastData) return;
-    const select = document.getElementById('daySelect');
-    const DE_DAYS = ['So','Mo','Di','Mi','Do','Fr','Sa'];
-    select.innerHTML = getDaysList().map((dateStr, i) => {
+    const bar = document.getElementById('dayTabBar');
+    const WD  = t('weekdays');
+    bar.innerHTML = getDaysList().map((dateStr, i) => {
       const d       = new Date(dateStr + 'T12:00');
-      const dayName = i === 0 ? 'Heute' : i === 1 ? 'Morgen' : DE_DAYS[d.getDay()];
-      const dayNum  = d.getDate() + '.' + (d.getMonth() + 1) + '.';
-      return `<option value="${i}">📅 ${dayName}, ${dayNum}</option>`;
+      const dayName = i === 0 ? t('today') : i === 1 ? t('tomorrow') : WD[d.getDay()];
+      const dayNum  = d.getDate() + '.' + (d.getMonth()+1) + '.';
+      return `<button class="day-tab${i === selectedDayIndex ? ' active' : ''}" onclick="selectDay(${i})">
+        <span class="day-tab-name">${dayName}</span>
+        <span class="day-tab-date">${dayNum}</span>
+      </button>`;
     }).join('');
-    select.value = String(selectedDayIndex);
+  }
+
+  function updateDayTabActive(idx) {
+    document.querySelectorAll('.day-tab').forEach((btn, i) => {
+      btn.classList.toggle('active', i === idx);
+    });
   }
 
   function selectDay(idx) {
     selectedDayIndex = parseInt(idx);
-    renderForDay(selectedDayIndex, true); // update stats immediately
-    // Scroll to that day's separator in the hourly strip
+    updateDayTabActive(selectedDayIndex);
+    renderForDay(selectedDayIndex, true);
+    // Scroll hourly strip to that day
     requestAnimationFrame(() => {
       const sep = document.querySelector(`.day-separator[data-day-idx="${selectedDayIndex}"]`);
       if (sep) sep.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
@@ -1385,8 +1781,8 @@
       const bsStats = getDayForecastStatsBS(dateStr);
       renderSourceForecast('metricsOpenMeteo', 'badgeOpenMeteo', omStats || stats);
       renderSourceForecast('metricsBrightSky', 'badgeBrightSky', bsStats || stats);
-      renderSourceUnavailable('metricsWttr',      'badgeWttr',      'Nur Live-Daten');
-      renderSourceUnavailable('metricsGeoSphere', 'badgeGeoSphere', 'Nur Live-Daten');
+      renderSourceUnavailable('metricsWttr',      'badgeWttr',      t('srcLiveOnly'));
+      renderSourceUnavailable('metricsGeoSphere', 'badgeGeoSphere', t('srcLiveOnly'));
 
       // Variance bars from the two forecast sources
       if (omStats && bsStats) {
@@ -1415,22 +1811,22 @@
     // Update timestamp label
     const days2 = getDaysList();
     const d = new Date(days2[dayIdx] + 'T12:00');
-    const DE_DAYS = ['So','Mo','Di','Mi','Do','Fr','Sa'];
-    const dayName = dayIdx === 0 ? 'Heute' : dayIdx === 1 ? 'Morgen' : DE_DAYS[d.getDay()];
+    const WD = t('weekdays');
+    const dayName = dayIdx === 0 ? t('today') : dayIdx === 1 ? t('tomorrow') : WD[d.getDay()];
     const locName = document.getElementById('locationSelect').value;
+    const timeStr = dayIdx === 0 ? new Date().toLocaleTimeString('de-AT', { hour:'2-digit', minute:'2-digit' }) : null;
     document.getElementById('lastUpdate').textContent =
-      `${dayName}, ${d.getDate()}.${d.getMonth()+1}. · ${locName}` +
-      (dayIdx === 0 ? ' · ' + new Date().toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' }) + ' Uhr' : ' · Prognose');
+      t('lastUpdateFmt')(`${dayName}`, `${d.getDate()}.${d.getMonth()+1}.`, locName, timeStr);
   }
 
   function renderSourceForecast(metricsId, badgeId, stats) {
     document.getElementById(badgeId).className = 'source-badge badge-ok';
-    document.getElementById(badgeId).textContent = '✓ Prognose';
+    document.getElementById(badgeId).textContent = t('srcForecast');
     document.getElementById(metricsId).innerHTML = `
-      <div><div class="src-metric-val">${stats.temp !== null ? stats.temp.toFixed(1) + '°C' : '–'}</div><div class="src-metric-lbl">Ø Temp (Tag)</div></div>
-      <div><div class="src-metric-val">${stats.rain !== null ? stats.rain.toFixed(1) + ' mm' : '–'}</div><div class="src-metric-lbl">Max Regen/h</div></div>
-      <div><div class="src-metric-val">${stats.wind !== null ? Math.round(stats.wind) + ' km/h' : '–'}</div><div class="src-metric-lbl">Ø Wind</div></div>
-      <div><div class="src-metric-val">${stats.humidity !== null ? Math.round(stats.humidity) + '%' : '–'}</div><div class="src-metric-lbl">Ø Feuchte</div></div>`;
+      <div><div class="src-metric-val">${stats.temp !== null ? stats.temp.toFixed(1) + '°C' : '–'}</div><div class="src-metric-lbl">${t('srcAvgTemp')}</div></div>
+      <div><div class="src-metric-val">${stats.rain !== null ? stats.rain.toFixed(1) + ' mm' : '–'}</div><div class="src-metric-lbl">${t('srcMaxRain')}</div></div>
+      <div><div class="src-metric-val">${stats.wind !== null ? Math.round(stats.wind) + ' km/h' : '–'}</div><div class="src-metric-lbl">${t('srcAvgWind')}</div></div>
+      <div><div class="src-metric-val">${stats.humidity !== null ? Math.round(stats.humidity) + '%' : '–'}</div><div class="src-metric-lbl">${t('srcAvgHumidity')}</div></div>`;
   }
 
   function renderSourceUnavailable(metricsId, badgeId, msg) {
@@ -1447,18 +1843,18 @@
 
     const sport = SPORTS[selectedSport];
     const nowH  = new Date().getHours();
-    const DE_DAYS = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    const WD    = t('weekdays');
 
     let allCells = '';
 
     for (let dayIdx = 0; dayIdx < days.length; dayIdx++) {
       const dateStr = days[dayIdx];
       const d = new Date(dateStr + 'T12:00');
-      const dayLabel = dayIdx === 0 ? 'Heute' : dayIdx === 1 ? 'Morgen' : DE_DAYS[d.getDay()];
+      const dayLabel = dayIdx === 0 ? t('today') : dayIdx === 1 ? t('tomorrow') : WD[d.getDay()];
       const dayNum   = `${d.getDate()}.${d.getMonth()+1}.`;
 
       // Day separator cell
-      allCells += `<div class="day-separator" data-day-idx="${dayIdx}">
+      allCells += `<div class="day-separator" data-day-idx="${dayIdx}" onclick="selectDay(${dayIdx})" title="${dayLabel} auswählen" style="cursor:pointer">
         <div class="day-sep-name">${dayLabel}</div>
         <div class="day-sep-date">${dayNum}</div>
       </div>`;
@@ -1523,13 +1919,13 @@
     }
 
     document.getElementById('hourlyCardLabel').textContent =
-      `🕐 3h-Blöcke · scroll → (${sport.emoji} ${selectedSport})`;
+      t('hourlyLabel')(`${sport.emoji} ${t('sportNames')[selectedSport]?.replace(/^[^ ]+ /,'') || selectedSport}`);
     document.getElementById('hourlyContent').innerHTML =
       `<div class="hourly-row" id="hourlyScrollContainer">${allCells}</div>
        <div style="margin-top:8px;font-size:0.7rem;color:var(--text-muted)">
-         <span style="background:#0d3320;padding:1px 6px;border-radius:3px">Grün = ideal</span> &nbsp;
-         <span style="background:#2d1f07;padding:1px 6px;border-radius:3px">Gelb = akzeptabel</span> &nbsp;
-         <span style="background:#2a0d0d;padding:1px 6px;border-radius:3px">Rot = nicht empfohlen</span>
+         <span style="background:#0d3320;padding:1px 6px;border-radius:3px">${t('legendGo')}</span> &nbsp;
+         <span style="background:#2d1f07;padding:1px 6px;border-radius:3px">${t('legendMaybe')}</span> &nbsp;
+         <span style="background:#2a0d0d;padding:1px 6px;border-radius:3px">${t('legendNogo')}</span>
        </div>`;
     document.getElementById('hourlyCard').style.display = '';
 
@@ -1555,7 +1951,7 @@
         });
         if (currentDay !== selectedDayIndex) {
           selectedDayIndex = currentDay;
-          document.getElementById('daySelect').value = String(currentDay);
+          updateDayTabActive(currentDay);
           renderForDay(currentDay, true);
         }
       };
@@ -1643,9 +2039,11 @@
     }
 
     const sport = SPORTS[selectedSport];
-    const DE_DAYS = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    const WD = t('weekdays');
     const d = new Date(dateStr + 'T12:00');
-    const dayLabel = dayIdx === 0 ? 'Heute' : dayIdx === 1 ? 'Morgen' : DE_DAYS[d.getDay()];
+    const dayLabel = dayIdx === 0 ? t('today') : dayIdx === 1 ? t('tomorrow') : WD[d.getDay()];
+    const sportDisplayName = t('sportNames')[selectedSport]?.replace(/^[^ ]+ /,'') || selectedSport;
+    const reasons = t('reasons')[selectedSport] || {};
 
     // Build hour rows
     let hoursHtml = '';
@@ -1671,11 +2069,11 @@
             </div>
             ${tempDiff !== null ? `
             <div style="font-size:0.68rem;color:#64748b;margin-bottom:3px">
-              Quellen: OM ${om.temp !== null ? om.temp.toFixed(1) + '°' : '–'} / BS ${bs.temp !== null ? bs.temp.toFixed(1) + '°' : '–'}
+              ${t('modalSources')}: OM ${om.temp !== null ? om.temp.toFixed(1) + '°' : '–'} / BS ${bs.temp !== null ? bs.temp.toFixed(1) + '°' : '–'}
               ${bsDot ? '→ BS: ' + bsDot : ''}
-              ${parseFloat(tempDiff) > 2 ? ' ⚠️ Streuung ' + tempDiff + '°' : ''}
+              ${parseFloat(tempDiff) > 2 ? ' ⚠️ ' + t('modalVariance') + ' ' + tempDiff + '°' : ''}
             </div>` : ''}
-            ${om.rain > 0.05 ? `<div style="font-size:0.72rem;color:#93c5fd">🌧️ ${om.rain.toFixed(1)}mm/h ${sport.reasons.rain}</div>` : ''}
+            ${om.rain > 0.05 ? `<div style="font-size:0.72rem;color:#93c5fd">🌧️ ${om.rain.toFixed(1)}mm/h ${reasons.rain || ''}</div>` : ''}
           </div>
         </div>`;
     }
@@ -1693,22 +2091,22 @@
 
     const varHtml = (forecastDataBS && bsHours.length) ? `
       <div style="background:#0f172a;border-radius:8px;padding:10px;margin-bottom:14px;font-size:0.78rem">
-        <div style="font-weight:700;margin-bottom:6px;color:#94a3b8">📊 Quellenvergleich (Ø dieses Block)</div>
+        <div style="font-weight:700;margin-bottom:6px;color:#94a3b8">📊 ${t('modalSources')} (Ø)</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;text-align:center">
           <div></div><div style="color:#64748b;font-size:0.65rem">Open-Meteo</div><div style="color:#64748b;font-size:0.65rem">Bright Sky</div>
-          <div style="color:#94a3b8">🌡️ Temp</div><div>${omTempAvg}°C</div><div>${bsTempAvg}°C</div>
-          <div style="color:#94a3b8">🌧️ Regen</div><div>max ${omRainMax}mm</div><div>max ${bsRainMax}mm</div>
+          <div style="color:#94a3b8">🌡️ ${t('medTemp')}</div><div>${omTempAvg}°C</div><div>${bsTempAvg}°C</div>
+          <div style="color:#94a3b8">🌧️ ${t('medRain')}</div><div>max ${omRainMax}mm</div><div>max ${bsRainMax}mm</div>
         </div>
       </div>` : '';
 
     document.getElementById('blockModalBody').innerHTML = `
       <div style="font-size:1.1rem;font-weight:800;margin-bottom:4px">
-        ${sport.emoji} ${selectedSport} · ${String(blockStart).padStart(2,'0')}–${String(blockEnd).padStart(2,'0')} Uhr
+        ${sport.emoji} ${sportDisplayName} · ${String(blockStart).padStart(2,'0')}–${String(blockEnd).padStart(2,'0')}
       </div>
       <div style="color:#64748b;font-size:0.8rem;margin-bottom:14px">${dayLabel}, ${d.getDate()}.${d.getMonth()+1}.</div>
       ${varHtml}
-      <div style="font-weight:600;font-size:0.8rem;color:#94a3b8;margin-bottom:6px">Stündliche Aufschlüsselung</div>
-      ${hoursHtml || '<div style="color:#64748b">Keine Daten</div>'}
+      <div style="font-weight:600;font-size:0.8rem;color:#94a3b8;margin-bottom:6px">${t('modalHourly')}</div>
+      ${hoursHtml || `<div style="color:#64748b">${t('noData')}</div>`}
     `;
 
     document.getElementById('blockModal').style.display = 'block';
@@ -1749,6 +2147,7 @@
   }
 
   async function fetchGeoSphere(loc) {
+    if (!loc.geosphere) throw new Error('Kein GeoSphere-Standort');
     const url = `https://dataset.api.hub.geosphere.at/v1/station/current/tawes-v1-10min` +
       `?parameters=TL,RR,FF,RF,SO&station_ids=${loc.geosphere}&output_format=geojson`;
     const r = await fetch(url);
@@ -1770,16 +2169,17 @@
   // ─── WMO WEATHER CODE → DESCRIPTION ─────────────────────────────────────────
 
   function wmoToDesc(code) {
-    if (code === 0) return 'Klarer Himmel';
-    if (code <= 3) return 'Leicht bewölkt';
-    if (code <= 48) return 'Nebelig';
-    if (code <= 57) return 'Nieselregen';
-    if (code <= 67) return 'Regen';
-    if (code <= 77) return 'Schneefall';
-    if (code <= 82) return 'Regenschauer';
-    if (code <= 86) return 'Schneeschauer';
-    if (code <= 99) return 'Gewitter';
-    return 'Unbekannt';
+    const w = t('wmo');
+    if (code === 0) return w.clear;
+    if (code <= 3)  return w.cloudy;
+    if (code <= 48) return w.fog;
+    if (code <= 57) return w.drizzle;
+    if (code <= 67) return w.rain;
+    if (code <= 77) return w.snow;
+    if (code <= 82) return w.showers;
+    if (code <= 86) return w.snowShowers;
+    if (code <= 99) return w.thunder;
+    return w.unknown;
   }
 
   // ─── RENDER SOURCE CARDS ─────────────────────────────────────────────────────
@@ -1857,25 +2257,27 @@
   // ─── SPORT SCORE ─────────────────────────────────────────────────────────────
 
   function calcSportScore(sport, medData) {
-    const t = SPORTS[sport].thresholds;
+    const thr = SPORTS[sport].thresholds;
+    const reasons = t('reasons')[sport] || {};
+    const rh = t('rainHistory');
     const issues = [];
     let score = 100;
 
-    if (medData.temp !== null && medData.temp < t.minTemp) {
-      issues.push(SPORTS[sport].reasons.temp);
+    if (medData.temp !== null && medData.temp < thr.minTemp) {
+      issues.push(reasons.temp);
       score -= 60;
     }
-    if (medData.rain !== null && medData.rain > t.maxRain) {
-      issues.push(SPORTS[sport].reasons.rain);
-      score -= 40 + Math.min(40, (medData.rain - t.maxRain) * 10);
+    if (medData.rain !== null && medData.rain > thr.maxRain) {
+      issues.push(reasons.rain);
+      score -= 40 + Math.min(40, (medData.rain - thr.maxRain) * 10);
     }
-    if (medData.humidity !== null && medData.humidity > t.maxHumidity) {
-      issues.push(SPORTS[sport].reasons.humidity);
+    if (medData.humidity !== null && medData.humidity > thr.maxHumidity) {
+      issues.push(reasons.humidity);
       score -= 20;
     }
-    if (medData.wind !== null && medData.wind > t.maxWind) {
-      issues.push(SPORTS[sport].reasons.wind);
-      score -= 30 + Math.min(30, (medData.wind - t.maxWind) * 0.5);
+    if (medData.wind !== null && medData.wind > thr.maxWind) {
+      issues.push(reasons.wind);
+      score -= 30 + Math.min(30, (medData.wind - thr.maxWind) * 0.5);
     }
 
     // Rain history penalty
@@ -1884,13 +2286,13 @@
         const { lastRainHoursAgo } = analyzeRainHistory(lastRainHistory, 24);
         if (lastRainHoursAgo !== null) {
           if (lastRainHoursAgo === 0) {
-            issues.push('Aktuell Regen – Fels ist nass!');
+            issues.push(reasons.rain);
             score -= 60;
           } else if (lastRainHoursAgo < 6) {
-            issues.push(`Vor ${lastRainHoursAgo}h geregnet – Fels noch nass`);
+            issues.push(`${rh.hoursAgo(lastRainHoursAgo)} – ${currentLang === 'en' ? 'rock still wet' : 'Fels noch nass'}`);
             score -= 40;
           } else if (lastRainHoursAgo < 12) {
-            issues.push(`Vor ${lastRainHoursAgo}h geregnet – Fels evt. noch feucht`);
+            issues.push(`${rh.hoursAgo(lastRainHoursAgo)} – ${currentLang === 'en' ? 'rock possibly still damp' : 'Fels evt. noch feucht'}`);
             score -= 20;
           }
         }
@@ -1898,13 +2300,13 @@
         const { lastRainHoursAgo } = analyzeRainHistory(lastRainHistory, 12);
         if (lastRainHoursAgo !== null) {
           if (lastRainHoursAgo === 0) {
-            issues.push('Aktuell Regen – Wege nass!');
+            issues.push(reasons.rain);
             score -= 40;
           } else if (lastRainHoursAgo < 3) {
-            issues.push(`Vor ${lastRainHoursAgo}h geregnet – Wege schlammig`);
+            issues.push(`${rh.hoursAgo(lastRainHoursAgo)}${rh.muddy}`);
             score -= 25;
           } else if (lastRainHoursAgo < 6) {
-            issues.push(`Vor ${lastRainHoursAgo}h geregnet – Wege noch etwas nass`);
+            issues.push(`${rh.hoursAgo(lastRainHoursAgo)}${rh.stillWet}`);
             score -= 10;
           }
         }
@@ -1914,9 +2316,9 @@
     score = Math.max(0, Math.min(100, Math.round(score)));
 
     let status, label;
-    if (score >= 70) { status = 'go';    label = 'Top! Raus gehen ✅'; }
-    else if (score >= 40) { status = 'maybe'; label = 'Naja… vielleicht 🤔'; }
-    else             { status = 'nogo';  label = 'Lieber drinbleiben ❌'; }
+    if (score >= 70) { status = 'go';    label = t('scoreGo'); }
+    else if (score >= 40) { status = 'maybe'; label = t('scoreMaybe'); }
+    else             { status = 'nogo';  label = t('scoreNogo'); }
 
     return { score, status, label, issues };
   }
@@ -1941,7 +2343,7 @@
     if (issues.length) {
       reason.innerHTML = issues.map(i => `${SPORTS[sport].emoji} ${i}`).join('<br>');
     } else {
-      reason.textContent = `${SPORTS[sport].emoji} ${sport}: Bedingungen sind ideal!`;
+      reason.textContent = `${SPORTS[sport].emoji} ${t('sportNames')[sport]?.replace(/^[^ ]+ /,'') || sport}: ${t('scorePerfect')}`;
     }
   }
 
@@ -1952,7 +2354,7 @@
     grid.innerHTML = Object.entries(SPORTS).filter(([name]) => name !== selectedSport).map(([name, cfg]) => {
       const { score, status, label, issues } = calcSportScore(name, medData);
       const isSelected = name === selectedSport ? 'selected' : '';
-      const reasonText = issues.length ? issues.join(' · ') : 'Perfekte Bedingungen!';
+      const reasonText = issues.length ? issues.join(' · ') : t('scorePerfect');
 
       // Rain history block for Klettern (24h) and Wandern (12h)
       let rainHistoryHtml = '';
@@ -1961,9 +2363,10 @@
         if (name === 'Wandern')  rainHistoryHtml = buildRainHistoryHtml(lastRainHistory, 12, 'Wandern');
       }
 
+      const displayName = t('sportNames')[name] || `${cfg.emoji} ${name}`;
       return `
         <div class="sport-score-item score-${status} ${isSelected}">
-          <div class="sport-score-title">${cfg.emoji} ${name}</div>
+          <div class="sport-score-title">${displayName}</div>
           <div class="sport-score-bar-bg">
             <div class="sport-score-bar-fill" style="width:${score}%"></div>
           </div>
@@ -1984,8 +2387,8 @@
     // Reset UI to loading
     document.getElementById('gaugeCard').className = 'gauge-card loading';
     document.getElementById('gaugePct').textContent = '⏳';
-    document.getElementById('gaugeStatus').textContent = 'Lädt…';
-    document.getElementById('gaugeDetail').textContent = 'Wetterdaten werden abgerufen';
+    document.getElementById('gaugeStatus').textContent = t('loading');
+    document.getElementById('gaugeDetail').textContent = t('gaugeLoading');
     document.getElementById('gaugeArc').setAttribute('stroke-dasharray', '0 252');
     document.getElementById('uncertaintyBanner').classList.remove('show');
     document.getElementById('medTemp').textContent = '–';
@@ -2074,7 +2477,104 @@
       ` Uhr · ${locName}`;
   }
 
+  // ─── SETTINGS ────────────────────────────────────────────────────────────────
+
+  // ─── LANGUAGE / i18n ─────────────────────────────────────────────────────────
+
+  function applyLanguage() {
+    const tr = TRANSLATIONS[currentLang];
+    // Static DOM elements
+    document.querySelector('header h1').textContent          = tr.title;
+    document.querySelector('header p.subtitle').textContent  = tr.subtitle;
+    document.querySelector('.refresh-btn').textContent       = tr.refresh;
+    document.title = tr.title + ' 🏔️';
+    // Sport buttons
+    document.querySelectorAll('.sport-btn').forEach(btn => {
+      const key = btn.dataset.sport;
+      if (tr.sportNames[key]) btn.textContent = tr.sportNames[key];
+    });
+    // Settings dialog
+    document.getElementById('settingsDialogTitle').textContent  = tr.settingsTitle;
+    document.getElementById('settingsDialogSub').textContent    = tr.settingsSub;
+    document.getElementById('settingsLocLabel').textContent     = tr.settingsLoc;
+    document.getElementById('settingsSportLabel').textContent   = tr.settingsSport;
+    document.getElementById('settingsLangLabel').textContent    = tr.settingsLang;
+    document.getElementById('settingsCancelBtn').textContent    = tr.cancel;
+    document.getElementById('settingsSaveBtn').innerHTML        = tr.saveApply;
+    // Sport scores section title
+    const ssTitle = document.getElementById('sportScoresTitle');
+    if (ssTitle) ssTitle.textContent = tr.otherSports;
+    // Uncertainty banner
+    document.getElementById('uncertaintyBanner').textContent = tr.highVariance;
+    // Re-render day tabs if data available
+    if (forecastData) {
+      renderDaySelector();
+      renderForDay(selectedDayIndex, true);
+    }
+  }
+
+  function openSettings() {
+    const tr = TRANSLATIONS[currentLang];
+    const modal = document.getElementById('settingsModal');
+    document.getElementById('settingsLocation').value =
+      localStorage.getItem('defaultLocation') || document.getElementById('locationSelect').value;
+    document.getElementById('settingsSport').value =
+      localStorage.getItem('defaultSport') || selectedSport;
+    document.getElementById('settingsLang').value =
+      localStorage.getItem('defaultLang') || currentLang;
+    modal.style.display = 'flex';
+  }
+
+  function closeSettings() {
+    document.getElementById('settingsModal').style.display = 'none';
+  }
+
+  function saveSettings() {
+    const loc   = document.getElementById('settingsLocation').value;
+    const sport = document.getElementById('settingsSport').value;
+    const lang  = document.getElementById('settingsLang').value;
+    localStorage.setItem('defaultLocation', loc);
+    localStorage.setItem('defaultSport', sport);
+    localStorage.setItem('defaultLang', lang);
+
+    // Apply immediately
+    document.getElementById('locationSelect').value = loc;
+    document.querySelectorAll('.sport-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.sport === sport);
+    });
+    selectedSport = sport;
+    currentLang = lang;
+    applyLanguage();
+
+    closeSettings();
+    loadWeather();
+  }
+
+  // Close settings modal when clicking outside
+  document.getElementById('settingsModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('settingsModal')) closeSettings();
+  });
+
   // ─── INIT ────────────────────────────────────────────────────────────────────
+
+  (function applyDefaults() {
+    const savedLoc   = localStorage.getItem('defaultLocation') || 'Salzburg';
+    const savedSport = localStorage.getItem('defaultSport') || 'Klettern';
+    const savedLang  = localStorage.getItem('defaultLang')  || 'de';
+    if (document.querySelector(`#locationSelect option[value="${savedLoc}"]`)) {
+      document.getElementById('locationSelect').value = savedLoc;
+    }
+    if (SPORTS[savedSport]) {
+      selectedSport = savedSport;
+      document.querySelectorAll('.sport-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sport === savedSport);
+      });
+    }
+    currentLang = savedLang;
+    applyLanguage();
+  })();
+
+  loadWeather();
 
   loadWeather();
 
